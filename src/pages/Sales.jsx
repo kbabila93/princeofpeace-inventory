@@ -5,8 +5,8 @@ import { Plus, DollarSign, Calendar, History } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from 'date-fns';
-import NewSaleModal from '@/components/sales/NewSaleModal';
-import SalesList from '@/components/sales/SalesList';
+import NewSaleModal from '@/components/sales/NewSaleModal.jsx';
+import SalesList from '@/components/sales/SalesList.jsx';
 
 export default function SalesPage() {
     const [isNewSaleOpen, setIsNewSaleOpen] = useState(false);
