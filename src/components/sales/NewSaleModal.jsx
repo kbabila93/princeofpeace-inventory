@@ -47,18 +47,28 @@ export default function NewSaleModal({ isOpen, onClose }) {
     const addToCart = () => {
         if (!selectedProduct) return;
         
+        const amountToAdd = Number(qty);
+        if (amountToAdd <= 0) return;
+
+        const availableStock = selectedProduct.quantity || 0;
         const existingItemIndex = cart.findIndex(item => item.product_id === selectedProduct.id);
+        const currentInCart = existingItemIndex >= 0 ? cart[existingItemIndex].quantity : 0;
+        
+        if (currentInCart + amountToAdd > availableStock) {
+            alert(`Cannot add ${amountToAdd} items. Only ${availableStock - currentInCart} more available in stock.`);
+            return;
+        }
         
         if (existingItemIndex >= 0) {
             const newCart = [...cart];
-            newCart[existingItemIndex].quantity += Number(qty);
+            newCart[existingItemIndex].quantity += amountToAdd;
             setCart(newCart);
         } else {
             setCart([...cart, {
                 product_id: selectedProduct.id,
                 name: selectedProduct.name,
                 price: selectedProduct.price || 0,
-                quantity: Number(qty)
+                quantity: amountToAdd
             }]);
         }
         
@@ -151,11 +161,20 @@ export default function NewSaleModal({ isOpen, onClose }) {
                                         <SelectValue placeholder="Select product..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {products.map(p => (
-                                            <SelectItem key={p.id} value={p.id}>
-                                                {p.name} (${p.price})
-                                            </SelectItem>
-                                        ))}
+                                        {products.map(p => {
+                                            const available = p.quantity || 0;
+                                            const isOutOfStock = available <= 0;
+                                            return (
+                                                <SelectItem key={p.id} value={p.id} disabled={isOutOfStock}>
+                                                    <div className="flex justify-between w-full gap-4">
+                                                        <span>{p.name}</span>
+                                                        <span className={isOutOfStock ? "text-red-500" : "text-gray-500"}>
+                                                            ${p.price} | {available} in stock
+                                                        </span>
+                                                    </div>
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -164,9 +183,15 @@ export default function NewSaleModal({ isOpen, onClose }) {
                                 <Input 
                                     type="number" 
                                     min="1" 
+                                    max={selectedProduct ? (selectedProduct.quantity || 0) : 999}
                                     value={qty} 
                                     onChange={(e) => setQty(e.target.value)} 
                                 />
+                                {selectedProduct && (
+                                    <div className="text-xs text-gray-500 text-right">
+                                        Max: {selectedProduct.quantity || 0}
+                                    </div>
+                                )}
                             </div>
                             <Button onClick={addToCart} disabled={!selectedProductId} className="bg-indigo-600">
                                 <Plus className="w-4 h-4 mr-2" /> Add
