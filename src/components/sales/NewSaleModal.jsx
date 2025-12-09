@@ -68,6 +68,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
                 product_id: selectedProduct.id,
                 name: selectedProduct.name,
                 price: selectedProduct.price || 0,
+                cost_price: selectedProduct.cost_price || 0,
                 quantity: amountToAdd
             }]);
         }
@@ -84,6 +85,8 @@ export default function NewSaleModal({ isOpen, onClose }) {
     };
 
     const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const cartTotalCost = cart.reduce((sum, item) => sum + ((item.cost_price || 0) * item.quantity), 0);
+    const cartProfit = cartTotal - cartTotalCost;
 
     const handleCompleteSale = async () => {
         if (cart.length === 0) return;
@@ -95,6 +98,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
             const saleData = {
                 date: new Date().toISOString(),
                 total_amount: cartTotal,
+                total_profit: cartProfit,
                 payment_method: paymentMethod,
                 items_summary: itemsSummary,
                 items_json: JSON.stringify(cart)
