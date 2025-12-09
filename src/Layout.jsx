@@ -5,6 +5,7 @@ import {
   LayoutDashboard, 
   Package, 
   History, 
+  DollarSign,
   Menu, 
   X,
   LogOut,
@@ -20,6 +21,7 @@ export default function Layout({ children, currentPageName }) {
 
   const navigation = [
     { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
+    { name: 'Sales', href: 'Sales', icon: DollarSign },
     { name: 'Inventory', href: 'Inventory', icon: Package },
     { name: 'Transactions', href: 'Transactions', icon: History },
   ];
