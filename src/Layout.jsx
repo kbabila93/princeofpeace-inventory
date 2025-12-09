@@ -10,13 +10,16 @@ import {
   X,
   LogOut,
   User,
-  Bell
+  Bell,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import TeamChat from '@/components/chat/TeamChat';
 import { base44 } from "@/api/base44Client";
 
 export default function Layout({ children, currentPageName }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const location = useLocation();
 
   const navigation = [
@@ -119,6 +122,13 @@ export default function Layout({ children, currentPageName }) {
           </h1>
 
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsChatOpen(!isChatOpen)}
+              className={`p-2 relative transition-colors ${isChatOpen ? 'text-indigo-600 bg-indigo-50 rounded-md' : 'text-gray-400 hover:text-gray-600'}`}
+              title="Team Chat"
+            >
+              <MessageSquare className="w-5 h-5" />
+            </button>
             <button className="p-2 text-gray-400 hover:text-gray-600 relative">
               <Bell className="w-5 h-5" />
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
@@ -132,6 +142,8 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </main>
       </div>
+      
+      <TeamChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );
 }
