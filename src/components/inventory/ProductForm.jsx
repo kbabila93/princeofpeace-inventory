@@ -17,6 +17,7 @@ export default function ProductForm({ isOpen, onClose, product }) {
     sku: "",
     category: "other",
     price: "",
+    currency: "USD",
     cost_price: "",
     quantity: "0",
     low_stock_threshold: "10",
@@ -84,7 +85,7 @@ export default function ProductForm({ isOpen, onClose, product }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
               <Select 
@@ -103,9 +104,29 @@ export default function ProductForm({ isOpen, onClose, product }) {
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="price">Selling Price ($)</Label>
+              </div>
+              <div className="space-y-2">
+              <Label htmlFor="currency">Currency</Label>
+              <Select 
+                value={formData.currency} 
+                onValueChange={(val) => setFormData({...formData, currency: val})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD ($)</SelectItem>
+                  <SelectItem value="EUR">EUR (€)</SelectItem>
+                  <SelectItem value="GBP">GBP (£)</SelectItem>
+                  <SelectItem value="CAD">CAD ($)</SelectItem>
+                  <SelectItem value="AUD">AUD ($)</SelectItem>
+                  <SelectItem value="JPY">JPY (¥)</SelectItem>
+                  <SelectItem value="INR">INR (₹)</SelectItem>
+                </SelectContent>
+              </Select>
+              </div>
+              <div className="space-y-2">
+              <Label htmlFor="price">Price</Label>
               <Input
                 id="price"
                 type="number"

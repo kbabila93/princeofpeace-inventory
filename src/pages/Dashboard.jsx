@@ -30,7 +30,19 @@ export default function Dashboard() {
   // Calculate stats
   const totalProducts = products.length;
   const totalItems = products.reduce((sum, p) => sum + (p.quantity || 0), 0);
-  const totalValue = products.reduce((sum, p) => sum + ((p.quantity || 0) * (p.price || 0)), 0);
+  
+  // Group value by currency
+  const valueByCurrency = products.reduce((acc, p) => {
+    const curr = p.currency || 'USD';
+    const val = (p.quantity || 0) * (p.price || 0);
+    acc[curr] = (acc[curr] || 0) + val;
+    return acc;
+  }, {});
+  
+  const totalValueDisplay = Object.entries(valueByCurrency)
+    .map(([curr, val]) => `${curr} ${val.toLocaleString()}`)
+    .join(' + ');
+
   const lowStockItems = products.filter(p => (p.quantity || 0) <= (p.low_stock_threshold || 10));
 
   return (
@@ -44,7 +56,7 @@ export default function Dashboard() {
         />
         <StatsCard 
           title="Total Inventory Value" 
-          value={`$${totalValue.toLocaleString()}`} 
+          value={totalValueDisplay || "$0"} 
           icon={DollarSign} 
           color="green"
         />

@@ -52,10 +52,10 @@ export default function SalesList({ sales, isLoading }) {
                             </Badge>
                         </TableCell>
                         <TableCell className="text-right text-green-600 font-medium">
-                            {sale.total_profit !== undefined ? `$${sale.total_profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}
+                            {sale.total_profit !== undefined ? `${sale.currency || '$'} ${sale.total_profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}
                         </TableCell>
                         <TableCell className="text-right font-bold text-gray-900">
-                            ${(sale.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {sale.currency || '$'} {(sale.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </TableCell>
                     </TableRow>
                 ))}

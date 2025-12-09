@@ -22,6 +22,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
     const [qty, setQty] = useState(1);
     const [unitPrice, setUnitPrice] = useState("");
     const [saleDate, setSaleDate] = useState("");
+    const [currency, setCurrency] = useState("USD");
     const [paymentMethod, setPaymentMethod] = useState("cash");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,6 +39,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
             setCart([]);
             setStep(1);
             setPaymentMethod("cash");
+            setCurrency("USD");
             setSaleDate(new Date().toISOString().split('T')[0]);
             setIsSubmitting(false);
             setQty(1);
@@ -118,6 +120,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
             const saleData = {
                 date: new Date(saleDate).toISOString(),
                 total_amount: cartTotal,
+                currency: currency,
                 total_profit: cartProfit,
                 payment_method: paymentMethod,
                 items_summary: itemsSummary,
@@ -284,7 +287,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
                             </div>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <Label>Sale Date</Label>
                                 <Input
@@ -293,6 +296,23 @@ export default function NewSaleModal({ isOpen, onClose }) {
                                     onChange={(e) => setSaleDate(e.target.value)}
                                     max={new Date().toISOString().split('T')[0]}
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Currency</Label>
+                                <Select value={currency} onValueChange={setCurrency}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="USD">USD</SelectItem>
+                                        <SelectItem value="EUR">EUR</SelectItem>
+                                        <SelectItem value="GBP">GBP</SelectItem>
+                                        <SelectItem value="CAD">CAD</SelectItem>
+                                        <SelectItem value="AUD">AUD</SelectItem>
+                                        <SelectItem value="JPY">JPY</SelectItem>
+                                        <SelectItem value="INR">INR</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-2">
                                 <Label>Payment Method</Label>

@@ -193,7 +193,7 @@ export default function Inventory() {
                       </div>
                     </TableCell>
                     <TableCell className="capitalize">{product.category}</TableCell>
-                    <TableCell>${Number(product.price).toFixed(2)}</TableCell>
+                    <TableCell>{product.currency || '$'} {Number(product.price).toFixed(2)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{product.quantity}</span>
