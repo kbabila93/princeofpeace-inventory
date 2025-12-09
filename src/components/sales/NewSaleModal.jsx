@@ -21,6 +21,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
     const [selectedProductId, setSelectedProductId] = useState("");
     const [qty, setQty] = useState(1);
     const [unitPrice, setUnitPrice] = useState("");
+    const [saleDate, setSaleDate] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("cash");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -37,6 +38,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
             setCart([]);
             setStep(1);
             setPaymentMethod("cash");
+            setSaleDate(new Date().toISOString().split('T')[0]);
             setIsSubmitting(false);
             setQty(1);
             setUnitPrice("");
@@ -114,7 +116,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
             // 1. Create Sale Record
             const itemsSummary = cart.map(i => `${i.quantity}x ${i.name}`).join(", ");
             const saleData = {
-                date: new Date().toISOString(),
+                date: new Date(saleDate).toISOString(),
                 total_amount: cartTotal,
                 total_profit: cartProfit,
                 payment_method: paymentMethod,
@@ -134,7 +136,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
                     type: "out",
                     quantity: item.quantity,
                     reason: "Sale",
-                    date: new Date().toISOString()
+                    date: new Date(saleDate).toISOString()
                 });
 
                 // Update Product Stock
@@ -282,9 +284,19 @@ export default function NewSaleModal({ isOpen, onClose }) {
                             </div>
                         </div>
                         
-                        <div className="space-y-2">
-                            <Label>Payment Method</Label>
-                            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Sale Date</Label>
+                                <Input
+                                    type="date"
+                                    value={saleDate}
+                                    onChange={(e) => setSaleDate(e.target.value)}
+                                    max={new Date().toISOString().split('T')[0]}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Payment Method</Label>
+                                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
@@ -295,6 +307,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
                                     <SelectItem value="other">Other</SelectItem>
                                 </SelectContent>
                             </Select>
+                            </div>
                         </div>
                     </div>
                 </div>
