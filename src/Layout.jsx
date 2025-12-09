@@ -11,6 +11,7 @@ import {
   X,
   LogOut,
   User,
+  Users,
   Bell,
   MessageSquare
 } from 'lucide-react';
@@ -28,6 +29,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Sales', href: 'Sales', icon: DollarSign },
     { name: 'Expenditures', href: 'Expenditures', icon: Receipt },
     { name: 'Inventory', href: 'Inventory', icon: Package },
+    { name: 'Employees', href: 'Employees', icon: Users },
     { name: 'Transactions', href: 'Transactions', icon: History },
   ];
 
