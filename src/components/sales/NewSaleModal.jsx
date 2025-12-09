@@ -20,6 +20,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
     const [cart, setCart] = useState([]);
     const [selectedProductId, setSelectedProductId] = useState("");
     const [qty, setQty] = useState(1);
+    const [unitPrice, setUnitPrice] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("cash");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,9 +39,20 @@ export default function NewSaleModal({ isOpen, onClose }) {
             setPaymentMethod("cash");
             setIsSubmitting(false);
             setQty(1);
+            setUnitPrice("");
             setSelectedProductId("");
         }
     }, [isOpen]);
+
+    // Update unit price when product is selected
+    useEffect(() => {
+        const product = products.find(p => p.id === selectedProductId);
+        if (product) {
+            setUnitPrice(product.price || 0);
+        } else {
+            setUnitPrice("");
+        }
+    }, [selectedProductId, products]);
 
     const selectedProduct = products.find(p => p.id === selectedProductId);
 
@@ -157,8 +169,8 @@ export default function NewSaleModal({ isOpen, onClose }) {
                 <div className="space-y-6 py-4">
                     {/* Item Entry Area */}
                     <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-100">
-                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
-                            <div className="sm:col-span-2 space-y-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+                            <div className="sm:col-span-5 space-y-2">
                                 <Label>Product</Label>
                                 <Select value={selectedProductId} onValueChange={setSelectedProductId}>
                                     <SelectTrigger>
@@ -182,7 +194,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-2">
+                            <div className="sm:col-span-2 space-y-2">
                                 <Label>Qty</Label>
                                 <Input 
                                     type="number" 
@@ -191,15 +203,23 @@ export default function NewSaleModal({ isOpen, onClose }) {
                                     value={qty} 
                                     onChange={(e) => setQty(e.target.value)} 
                                 />
-                                {selectedProduct && (
-                                    <div className="text-xs text-gray-500 text-right">
-                                        Max: {selectedProduct.quantity || 0}
-                                    </div>
-                                )}
                             </div>
-                            <Button onClick={addToCart} disabled={!selectedProductId} className="bg-indigo-600">
-                                <Plus className="w-4 h-4 mr-2" /> Add
-                            </Button>
+                            <div className="sm:col-span-3 space-y-2">
+                                <Label>Price</Label>
+                                <Input 
+                                    type="number" 
+                                    min="0"
+                                    step="0.01"
+                                    value={unitPrice} 
+                                    onChange={(e) => setUnitPrice(e.target.value)} 
+                                    placeholder="Price"
+                                />
+                            </div>
+                            <div className="sm:col-span-2">
+                                <Button onClick={addToCart} disabled={!selectedProductId} className="w-full bg-indigo-600">
+                                    <Plus className="w-4 h-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
@@ -243,9 +263,17 @@ export default function NewSaleModal({ isOpen, onClose }) {
 
                     {/* Totals & Payment */}
                     <div className="pt-4 border-t space-y-4">
-                        <div className="flex justify-between items-center text-lg font-bold">
-                            <span>Total Amount</span>
-                            <span className="text-indigo-600">${cartTotal.toFixed(2)}</span>
+                        <div className="space-y-1">
+                            <div className="flex justify-between items-center text-lg font-bold">
+                                <span>Total Amount</span>
+                                <span className="text-indigo-600">${cartTotal.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-gray-500">
+                                <span>Est. Profit</span>
+                                <span className={cartProfit >= 0 ? "text-green-600" : "text-red-500"}>
+                                    ${cartProfit.toFixed(2)}
+                                </span>
+                            </div>
                         </div>
                         
                         <div className="space-y-2">
