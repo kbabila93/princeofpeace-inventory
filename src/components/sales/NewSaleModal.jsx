@@ -60,7 +60,10 @@ export default function NewSaleModal({ isOpen, onClose }) {
         if (!selectedProduct) return;
         
         const amountToAdd = Number(qty);
+        const pricePerUnit = Number(unitPrice);
+
         if (amountToAdd <= 0) return;
+        if (pricePerUnit < 0) return;
 
         const availableStock = selectedProduct.quantity || 0;
         const existingItemIndex = cart.findIndex(item => item.product_id === selectedProduct.id);
@@ -74,12 +77,14 @@ export default function NewSaleModal({ isOpen, onClose }) {
         if (existingItemIndex >= 0) {
             const newCart = [...cart];
             newCart[existingItemIndex].quantity += amountToAdd;
+            // Update price for all items if re-added
+            newCart[existingItemIndex].price = pricePerUnit;
             setCart(newCart);
         } else {
             setCart([...cart, {
                 product_id: selectedProduct.id,
                 name: selectedProduct.name,
-                price: selectedProduct.price || 0,
+                price: pricePerUnit,
                 cost_price: selectedProduct.cost_price || 0,
                 quantity: amountToAdd
             }]);
@@ -88,6 +93,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
         // Reset inputs
         setSelectedProductId("");
         setQty(1);
+        setUnitPrice("");
     };
 
     const removeFromCart = (index) => {
