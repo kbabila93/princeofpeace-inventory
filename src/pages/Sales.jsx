@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, DollarSign, Calendar } from 'lucide-react';
+import { Plus, DollarSign, Calendar, History } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from 'date-fns';
@@ -55,7 +55,7 @@ export default function SalesPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-6 border-b border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <HistoryIcon className="w-5 h-5 text-gray-500" />
+                        <History className="w-5 h-5 text-gray-500" />
                         Recent Sales
                     </h3>
                 </div>
@@ -69,24 +69,4 @@ export default function SalesPage() {
             />
         </div>
     );
-}
-
-function HistoryIcon(props) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74-2.74L3 12" />
-            <path d="M3 3v9h9" />
-        </svg>
-    )
 }
