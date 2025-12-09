@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { toast } from 'sonner';
 import { 
   Table, 
   TableBody, 
@@ -11,12 +13,14 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
-import { Search, Filter, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Search, Filter, ArrowUpRight, ArrowDownRight, Trash2, Loader2 } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Transactions() {
   const [filterType, setFilterType] = useState('all');
+  const queryClient = useQueryClient();
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ['transactions'],
@@ -27,6 +31,30 @@ export default function Transactions() {
     filterType === 'all' || t.type === filterType
   );
 
+  const deleteAllMutation = useMutation({
+    mutationFn: async () => {
+      const promises = transactions.map(tx => base44.entities.Transaction.delete(tx.id));
+      await Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      toast.success("All recent transactions cleared");
+      setIsDeleting(false);
+    },
+    onError: () => {
+      toast.error("Failed to clear transactions");
+      setIsDeleting(false);
+    }
+  });
+
+  const handleDeleteAll = () => {
+    if (transactions.length === 0) return;
+    if (confirm("Are you sure you want to delete all recent transactions? This cannot be undone.")) {
+      setIsDeleting(true);
+      deleteAllMutation.mutate();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -34,16 +62,26 @@ export default function Transactions() {
           <h2 className="text-lg font-medium text-gray-900">Transaction History</h2>
           <p className="text-sm text-gray-500">View recent stock movements</p>
         </div>
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Transactions</SelectItem>
-            <SelectItem value="in">Stock In</SelectItem>
-            <SelectItem value="out">Stock Out</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="destructive" 
+            onClick={handleDeleteAll}
+            disabled={transactions.length === 0 || isDeleting}
+          >
+            {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+            Clear History
+          </Button>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Transactions</SelectItem>
+              <SelectItem value="in">Stock In</SelectItem>
+              <SelectItem value="out">Stock Out</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
