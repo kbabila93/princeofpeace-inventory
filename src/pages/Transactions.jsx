@@ -27,6 +27,13 @@ export default function Transactions() {
     queryFn: () => base44.entities.Transaction.list('-date', 100), // Get last 100 transactions
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const canDelete = user?.role === 'admin' || (user?.permissions || []).includes('delete_transactions');
+
   const filteredTransactions = transactions.filter(t => 
     filterType === 'all' || t.type === filterType
   );
@@ -63,14 +70,16 @@ export default function Transactions() {
           <p className="text-sm text-gray-500">View recent stock movements</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button 
-            variant="destructive" 
-            onClick={handleDeleteAll}
-            disabled={transactions.length === 0 || isDeleting}
-          >
-            {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
-            Clear History
-          </Button>
+          {canDelete && (
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteAll}
+              disabled={transactions.length === 0 || isDeleting}
+            >
+              {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+              Clear History
+            </Button>
+          )}
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by Type" />

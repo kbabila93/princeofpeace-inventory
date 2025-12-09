@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { 
@@ -13,7 +13,8 @@ import {
   User,
   Users,
   Bell,
-  MessageSquare
+  MessageSquare,
+  Shield
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
@@ -22,16 +23,36 @@ import { base44 } from "@/api/base44Client";
 export default function Layout({ children, currentPageName }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
 
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
   const navigation = [
-    { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
-    { name: 'Sales', href: 'Sales', icon: DollarSign },
-    { name: 'Expenditures', href: 'Expenditures', icon: Receipt },
-    { name: 'Inventory', href: 'Inventory', icon: Package },
-    { name: 'Employees', href: 'Employees', icon: Users },
-    { name: 'Transactions', href: 'Transactions', icon: History },
+    { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard, permission: 'view_dashboard' },
+    { name: 'Sales', href: 'Sales', icon: DollarSign, permission: 'manage_sales' },
+    { name: 'Expenditures', href: 'Expenditures', icon: Receipt, permission: 'manage_expenditures' },
+    { name: 'Inventory', href: 'Inventory', icon: Package, permission: 'manage_inventory' },
+    { name: 'Employees', href: 'Employees', icon: Users, permission: 'manage_employees' },
+    { name: 'Transactions', href: 'Transactions', icon: History, permission: 'manage_transactions' },
   ];
+
+  if (user?.role === 'admin') {
+    navigation.push({ name: 'Users', href: 'Users', icon: Shield, permission: 'manage_users' });
+  }
+
+  // Filter navigation based on user permissions
+  // If no permissions array exists (legacy/new user), default to allowing basic access or just assume all for now if not restricted
+  // For safety, let's assume if permissions array exists, check it. If not, fallback to default behavior (allow all for admin, restrict for user?)
+  // Actually, let's make it simple: if 'permissions' property exists, use it.
+  const filteredNavigation = navigation.filter(item => {
+    if (user?.role === 'admin') return true; // Admins see everything by default
+    if (!user) return false;
+    if (!item.permission) return true;
+    return (user.permissions || []).includes(item.permission);
+  });
 
   const handleLogout = async () => {
     await base44.auth.logout();
@@ -69,7 +90,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
 
           <nav className="flex-1 px-4 py-6 space-y-1">
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const isActive = currentPageName === item.name;
               return (
                 <Link
@@ -95,8 +116,8 @@ export default function Layout({ children, currentPageName }) {
                 <User className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">Store Manager</p>
-                <p className="text-xs text-gray-500 truncate">admin@store.com</p>
+                <p className="text-sm font-medium text-gray-900 truncate">{user?.full_name || 'User'}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.email || 'Loading...'}</p>
               </div>
             </div>
             <Button 
