@@ -47,6 +47,7 @@ import { toast } from 'sonner';
 export default function Inventory() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sectionFilter, setSectionFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
@@ -73,6 +74,7 @@ export default function Inventory() {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase()) || 
                           product.sku?.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
+    const matchesSection = sectionFilter === "all" || (product.section || "Main") === sectionFilter;
     
     let matchesStatus = true;
     if (statusFilter === "low_stock") {
@@ -81,8 +83,11 @@ export default function Inventory() {
       matchesStatus = (product.quantity || 0) === 0;
     }
 
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesCategory && matchesSection && matchesStatus;
   });
+
+  // Get unique sections for filter
+  const uniqueSections = [...new Set(products.map(p => p.section || "Main"))].sort();
 
   const handleEdit = (product) => {
     setEditingProduct(product);
@@ -147,6 +152,17 @@ export default function Inventory() {
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={sectionFilter} onValueChange={setSectionFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Section" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sections</SelectItem>
+              {uniqueSections.map(section => (
+                <SelectItem key={section} value={section}>{section}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Stock Status" />
@@ -170,7 +186,8 @@ export default function Inventory() {
             <TableRow>
               <TableHead>Product</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Price</TableHead>
+              <TableHead>Section</TableHead>
+              <TableHead>Price</TableHead
               <TableHead>Stock Level</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -214,6 +231,7 @@ export default function Inventory() {
                       </div>
                     </TableCell>
                     <TableCell className="capitalize">{product.category}</TableCell>
+                    <TableCell>{product.section || "Main"}</TableCell>
                     <TableCell>{product.currency || '$'} {Number(product.price).toFixed(2)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

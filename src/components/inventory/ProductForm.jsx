@@ -20,6 +20,7 @@ export default function ProductForm({ isOpen, onClose, product }) {
     name: "",
     sku: generateSKU(),
     category: "other",
+    section: "Main",
     price: "",
     currency: "USD",
     cost_price: "",
@@ -38,6 +39,7 @@ export default function ProductForm({ isOpen, onClose, product }) {
             name: "",
             sku: generateSKU(),
             category: "other",
+            section: "Main",
             price: "",
             currency: "USD",
             cost_price: "",
@@ -139,10 +141,19 @@ export default function ProductForm({ isOpen, onClose, product }) {
                   <SelectItem value="home">Home</SelectItem>
                   <SelectItem value="beauty">Beauty</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              </div>
-              <div className="space-y-2">
+                  </SelectContent>
+                  </Select>
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="section">Section / Location</Label>
+                  <Input
+                  id="section"
+                  value={formData.section}
+                  onChange={(e) => setFormData({...formData, section: e.target.value})}
+                  placeholder="e.g. Aisle 1, Warehouse A"
+                  />
+                  </div>
+                  <div className="space-y-2">
               <Label htmlFor="currency">Currency</Label>
               <Select 
                 value={formData.currency} 
