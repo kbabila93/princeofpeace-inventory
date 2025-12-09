@@ -7,14 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+
+const generateSKU = () => {
+  return "PRD-" + Math.floor(10000000 + Math.random() * 90000000).toString();
+};
 
 export default function ProductForm({ isOpen, onClose, product }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState(product || {
     name: "",
-    sku: "",
+    sku: generateSKU(),
     category: "other",
     price: "",
     currency: "USD",
@@ -24,6 +28,27 @@ export default function ProductForm({ isOpen, onClose, product }) {
     description: "",
     image_url: ""
   });
+
+  React.useEffect(() => {
+    if (isOpen) {
+      if (product) {
+        setFormData(product);
+      } else {
+        setFormData({
+            name: "",
+            sku: generateSKU(),
+            category: "other",
+            price: "",
+            currency: "USD",
+            cost_price: "",
+            quantity: "0",
+            low_stock_threshold: "10",
+            description: "",
+            image_url: ""
+        });
+      }
+    }
+  }, [isOpen, product]);
 
   const isEditing = !!product;
 
@@ -77,11 +102,23 @@ export default function ProductForm({ isOpen, onClose, product }) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="sku">SKU / Barcode</Label>
-              <Input
-                id="sku"
-                value={formData.sku}
-                onChange={(e) => setFormData({...formData, sku: e.target.value})}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="sku"
+                  value={formData.sku}
+                  onChange={(e) => setFormData({...formData, sku: e.target.value})}
+                  placeholder="Auto-generated"
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="icon"
+                  title="Generate new SKU"
+                  onClick={() => setFormData({...formData, sku: generateSKU()})}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
