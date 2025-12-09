@@ -187,7 +187,7 @@ export default function Inventory() {
               <TableHead>Product</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Section</TableHead>
-              <TableHead>Price</TableHead
+              <TableHead>Price</TableHead>
               <TableHead>Stock Level</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
