@@ -10,8 +10,10 @@ import {
   ArrowUpCircle,
   AlertCircle,
   Pencil,
-  Trash2
+  Trash2,
+  Printer
 } from 'lucide-react';
+import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -94,6 +96,25 @@ export default function Inventory() {
 
   const openStockAdjustment = (product, type) => {
     setStockAdjustment({ isOpen: true, product, type });
+  };
+
+  const handlePrintLabel = (product) => {
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: [50, 30]
+    });
+
+    doc.setFontSize(10);
+    doc.text(product.name.substring(0, 20), 25, 5, { align: "center" });
+    
+    doc.setFontSize(8);
+    doc.text(product.sku || "No SKU", 25, 12, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.text(`${product.currency || '$'} ${Number(product.price).toFixed(2)}`, 25, 20, { align: "center" });
+    
+    doc.save(`${product.sku || 'product'}-label.pdf`);
   };
 
   return (
@@ -243,6 +264,9 @@ export default function Inventory() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handlePrintLabel(product)}>
+                              <Printer className="w-4 h-4 mr-2" /> Print Label
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEdit(product)}>
                               <Pencil className="w-4 h-4 mr-2" /> Edit Details
                             </DropdownMenuItem>
