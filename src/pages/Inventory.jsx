@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/select";
 import ProductForm from '@/components/inventory/ProductForm';
 import StockAdjustmentDialog from '@/components/inventory/StockAdjustmentDialog';
+import BatchManagerDialog from '@/components/inventory/BatchManagerDialog';
 import ShareProductDialog from '@/components/inventory/ShareProductDialog';
 import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
 import PrinterSettingsDialog from '@/components/inventory/PrinterSettingsDialog';
@@ -67,6 +68,7 @@ export default function Inventory() {
   const [printerSettings, setPrinterSettings] = useState({ preset: 'standard', width: 50, height: 30, unit: 'mm' });
 
   const [stockAdjustment, setStockAdjustment] = useState({ isOpen: false, product: null, type: 'in' });
+  const [batchDialog, setBatchDialog] = useState({ isOpen: false, product: null });
 
   const queryClient = useQueryClient();
 
@@ -486,6 +488,12 @@ export default function Inventory() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => setBatchDialog({ isOpen: true, product })}>
+                              <div className="flex items-center">
+                                <span className="w-4 h-4 mr-2 flex items-center justify-center font-bold text-[10px] border border-current rounded bg-transparent">B</span>
+                                Manage Batches
+                              </div>
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handlePrintLabel(product)}>
                               <Printer className="w-4 h-4 mr-2" /> Print Label
                             </DropdownMenuItem>
@@ -548,6 +556,12 @@ export default function Inventory() {
         isOpen={shareDialog.isOpen} 
         onClose={() => setShareDialog({ ...shareDialog, isOpen: false })} 
         product={shareDialog.product} 
+      />
+
+      <BatchManagerDialog 
+        isOpen={batchDialog.isOpen} 
+        onClose={() => setBatchDialog({ ...batchDialog, isOpen: false })} 
+        product={batchDialog.product} 
       />
       </div>
       );

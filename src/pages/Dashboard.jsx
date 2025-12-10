@@ -7,7 +7,8 @@ import {
   TrendingUp, 
   DollarSign, 
   ArrowRight,
-  History
+  History,
+  Calendar
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import StatsCard from '@/components/dashboard/StatsCard';
@@ -28,6 +29,11 @@ export default function Dashboard() {
     queryFn: () => base44.entities.Transaction.list('-date', 5),
   });
 
+  const { data: batches = [] } = useQuery({
+    queryKey: ['batches', 'expiring'],
+    queryFn: () => base44.entities.Batch.list('expiration_date', 50), // Get 50 batches sorted by expiration date (ascending)
+  });
+
   // Calculate stats
   const totalProducts = products.length;
   const totalItems = products.reduce((sum, p) => sum + (p.quantity || 0), 0);
@@ -45,6 +51,17 @@ export default function Dashboard() {
     .join(' + ');
 
   const lowStockItems = products.filter(p => (p.quantity || 0) <= (p.low_stock_threshold || 10));
+
+  // Filter for batches expiring in the next 30 days
+  const now = new Date();
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(now.getDate() + 30);
+  
+  const expiringBatches = batches.filter(b => {
+    if (!b.expiration_date) return false;
+    const expDate = new Date(b.expiration_date);
+    return expDate <= thirtyDaysFromNow && b.quantity > 0; // Only count active batches
+  }).slice(0, 5); // Take top 5
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -107,55 +124,88 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Low Stock Alert Section */}
         <motion.div variants={itemVariants} className="lg:col-span-2">
-          <Card className="h-full border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-orange-500" />
-                Low Stock Alerts
-              </CardTitle>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+            {/* Low Stock Alerts */}
+            <Card className="h-full border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 pb-4">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <AlertTriangle className="w-4 h-4 text-orange-500" />
+                  Low Stock
+                </CardTitle>
+                <Button variant="ghost" size="sm" asChild className="h-8 px-2 text-xs">
+                  <Link to={createPageUrl("Inventory")}>View All</Link>
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-4 p-4">
+                {lowStockItems.length === 0 ? (
+                  <div className="text-center py-6 text-gray-500">
+                    <p className="text-sm">Stock levels healthy</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {lowStockItems.slice(0, 4).map(product => (
+                      <div key={product.id} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${(product.quantity === 0) ? 'bg-red-500' : 'bg-orange-500'}`} />
+                          <span className="truncate font-medium">{product.name}</span>
+                        </div>
+                        <span className="font-mono text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded">
+                          {product.quantity} left
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Expiring Batches */}
+            <Card className="h-full border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 pb-4">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Calendar className="w-4 h-4 text-red-500" />
+                  Expiring Soon
+                </CardTitle>
+                <Button variant="ghost" size="sm" asChild className="h-8 px-2 text-xs">
+                  <Link to={createPageUrl("Inventory")}>View</Link>
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-4 p-4">
+                {expiringBatches.length === 0 ? (
+                  <div className="text-center py-6 text-gray-500">
+                    <p className="text-sm">No items expiring soon</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {expiringBatches.map(batch => {
+                       // Find product name if possible, assuming batches are fetched. 
+                       // Since we only have product_id in batch, we might need to lookup product name from the products list we already have.
+                       const product = products.find(p => p.id === batch.product_id);
+                       const daysLeft = Math.ceil((new Date(batch.expiration_date) - new Date()) / (1000 * 60 * 60 * 24));
+                       
+                       return (
+                        <div key={batch.id} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <span className="truncate font-medium">{product?.name || 'Unknown Product'}</span>
+                            <span className="text-xs text-gray-400">({batch.batch_number})</span>
+                          </div>
+                          <span className={`font-mono text-xs px-2 py-0.5 rounded ${daysLeft < 7 ? 'bg-red-100 text-red-700' : 'bg-orange-50 text-orange-700'}`}>
+                            {daysLeft} days
+                          </span>
+                        </div>
+                       );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </motion.div>
               <Button variant="outline" size="sm" asChild className="hover:bg-slate-50">
                 <Link to={createPageUrl("Inventory")}>View All Inventory</Link>
               </Button>
             </CardHeader>
-          <CardContent>
-            {lowStockItems.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <div className="flex justify-center mb-3">
-                  <div className="p-3 bg-green-50 rounded-full">
-                    <Package className="w-6 h-6 text-green-500" />
-                  </div>
-                </div>
-                <p>All stock levels are healthy!</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {lowStockItems.slice(0, 5).map(product => (
-                  <div key={product.id} className="flex items-center justify-between p-3 bg-red-50/50 rounded-lg border border-red-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-md bg-white border flex items-center justify-center overflow-hidden">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <Package className="w-5 h-5 text-gray-300" />
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">{product.name}</h4>
-                        <p className="text-xs text-red-600 font-medium">
-                          Only {product.quantity} left (Threshold: {product.low_stock_threshold})
-                        </p>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="outline" className="border-red-200 text-red-700 hover:bg-red-50" asChild>
-                      <Link to={createPageUrl("Inventory")}>Restock</Link>
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        </motion.div>
+
 
         {/* Recent Activity */}
         <motion.div variants={itemVariants}>
