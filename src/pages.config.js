@@ -8,6 +8,7 @@ import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
 import AdvertGenerator from './pages/AdvertGenerator';
 import Customers from './pages/Customers';
+import Suppliers from './pages/Suppliers';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "VideoConference": VideoConference,
     "AdvertGenerator": AdvertGenerator,
     "Customers": Customers,
+    "Suppliers": Suppliers,
 }
 
 export const pagesConfig = {

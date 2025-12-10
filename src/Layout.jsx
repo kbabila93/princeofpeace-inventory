@@ -16,7 +16,8 @@ import {
   MessageSquare,
   Shield,
   Video,
-  Megaphone
+  Megaphone,
+  Truck
   } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
@@ -42,6 +43,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Inventory', href: 'Inventory', icon: Package, permission: 'manage_inventory' },
     { name: 'Employees', href: 'Employees', icon: Users, permission: 'manage_employees' },
     { name: 'Customers', href: 'Customers', icon: Users, permission: 'manage_sales' },
+    { name: 'Suppliers', href: 'Suppliers', icon: Truck, permission: 'manage_inventory' },
     { name: 'Transactions', href: 'Transactions', icon: History, permission: 'manage_transactions' },
     { name: 'Meetings', href: 'VideoConference', icon: Video, permission: 'view_dashboard' },
     { name: 'Marketing', href: 'AdvertGenerator', icon: Megaphone, permission: 'view_dashboard' },
