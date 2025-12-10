@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { Printer, User } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SalesList({ sales, isLoading }) {
@@ -52,6 +52,7 @@ export default function SalesList({ sales, isLoading }) {
                 
                 <div class="meta">
                   Date: ${dateStr}<br/>
+                  Customer: ${sale.customer_name || 'Walk-in Customer'}<br/>
                   Sale ID: ${sale.id.substring(0, 8)}...
                 </div>
                 
@@ -109,6 +110,7 @@ export default function SalesList({ sales, isLoading }) {
             <TableHeader>
                 <TableRow>
                     <TableHead>Date</TableHead>
+                    <TableHead>Customer</TableHead>
                     <TableHead>Items</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead className="text-right">Profit</TableHead>
@@ -121,6 +123,12 @@ export default function SalesList({ sales, isLoading }) {
                     <TableRow key={sale.id}>
                         <TableCell className="font-medium text-gray-900">
                             {format(new Date(sale.date), 'MMM d, yyyy h:mm a')}
+                        </TableCell>
+                        <TableCell>
+                            <div className="flex items-center gap-1 text-gray-700">
+                                <User className="w-3 h-3 text-gray-400" />
+                                {sale.customer_name || "Walk-in"}
+                            </div>
                         </TableCell>
                         <TableCell>
                             <span className="text-gray-600 line-clamp-1" title={sale.items_summary}>

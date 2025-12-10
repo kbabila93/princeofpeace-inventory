@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Plus, ShoppingCart, ScanBarcode } from 'lucide-react';
+import { Trash2, Plus, ShoppingCart, ScanBarcode, User } from 'lucide-react';
 import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
 import { toast } from 'sonner';
 
@@ -26,6 +26,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
     const [saleDate, setSaleDate] = useState("");
     const [currency, setCurrency] = useState("USD");
     const [paymentMethod, setPaymentMethod] = useState("cash");
+    const [selectedCustomerId, setSelectedCustomerId] = useState("walk-in");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isScanOpen, setIsScanOpen] = useState(false);
 
@@ -36,12 +37,20 @@ export default function NewSaleModal({ isOpen, onClose }) {
         enabled: isOpen
     });
 
+    // Fetch customers
+    const { data: customers = [] } = useQuery({
+        queryKey: ['customers'],
+        queryFn: () => base44.entities.Customer.list(),
+        enabled: isOpen
+    });
+
     // Reset when opening
     useEffect(() => {
         if (isOpen) {
             setCart([]);
             setStep(1);
             setPaymentMethod("cash");
+            setSelectedCustomerId("walk-in");
             setCurrency("USD");
             setSaleDate(new Date().toISOString().split('T')[0]);
             setIsSubmitting(false);
@@ -132,12 +141,16 @@ export default function NewSaleModal({ isOpen, onClose }) {
         try {
             // 1. Create Sale Record
             const itemsSummary = cart.map(i => `${i.quantity}x ${i.name}`).join(", ");
+            const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
+            
             const saleData = {
                 date: new Date(saleDate).toISOString(),
                 total_amount: cartTotal,
                 currency: currency,
                 total_profit: cartProfit,
                 payment_method: paymentMethod,
+                customer_id: selectedCustomerId === "walk-in" ? null : selectedCustomerId,
+                customer_name: selectedCustomerId === "walk-in" ? "Walk-in Customer" : selectedCustomer?.name,
                 items_summary: itemsSummary,
                 items_json: JSON.stringify(cart)
             };
@@ -195,6 +208,22 @@ export default function NewSaleModal({ isOpen, onClose }) {
                 <div className="space-y-6 py-4">
                     {/* Item Entry Area */}
                     <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-100">
+                        {/* Customer Selection */}
+                        <div className="space-y-2">
+                            <Label>Customer</Label>
+                            <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select customer" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="walk-in">Walk-in Customer</SelectItem>
+                                    {customers.map(c => (
+                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
                             <div className="sm:col-span-5 space-y-2">
                                 <Label>Product</Label>

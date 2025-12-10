@@ -41,6 +41,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Expenditures', href: 'Expenditures', icon: Receipt, permission: 'manage_expenditures' },
     { name: 'Inventory', href: 'Inventory', icon: Package, permission: 'manage_inventory' },
     { name: 'Employees', href: 'Employees', icon: Users, permission: 'manage_employees' },
+    { name: 'Customers', href: 'Customers', icon: Users, permission: 'manage_sales' },
     { name: 'Transactions', href: 'Transactions', icon: History, permission: 'manage_transactions' },
     { name: 'Meetings', href: 'VideoConference', icon: Video, permission: 'view_dashboard' },
     { name: 'Marketing', href: 'AdvertGenerator', icon: Megaphone, permission: 'view_dashboard' },
