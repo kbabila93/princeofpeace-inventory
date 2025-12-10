@@ -117,45 +117,71 @@ export default function Inventory() {
     setStockAdjustment({ isOpen: true, product, type });
   };
 
-  const handlePrintLabel = async (product) => {
-    const doc = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: [50, 30]
-    });
-
+  const handlePrintLabel = (product) => {
     const sku = product.sku || "NO SKU";
     // Using bwip-js API for barcode generation
     const barcodeUrl = `https://bwipjs-api.metafloor.org/?bcid=code128&text=${encodeURIComponent(sku)}&scale=3&height=10&incltext=true`;
 
-    doc.setFontSize(9);
-    doc.text(product.name.substring(0, 25), 25, 5, { align: "center" });
-
-    try {
-      const response = await fetch(barcodeUrl);
-      const blob = await response.blob();
-      const base64 = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
-      });
-
-      const imgProps = doc.getImageProperties(base64);
-      const imgWidth = 35; 
-      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-      const x = (50 - imgWidth) / 2;
-      
-      doc.addImage(base64, 'PNG', x, 7, imgWidth, imgHeight);
-    } catch (error) {
-      console.error("Barcode load failed", error);
-      doc.setFontSize(8);
-      doc.text(sku, 25, 15, { align: "center" });
+    const printWindow = window.open('', '_blank', 'width=500,height=400');
+    
+    if (!printWindow) {
+      toast.error("Please allow popups to print labels");
+      return;
     }
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Label - ${product.name}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
+            }
+            .label-container {
+              width: 300px;
+              padding: 15px;
+              text-align: center;
+              border: 1px dashed #ccc;
+            }
+            @media print {
+              body { display: block; height: auto; }
+              .label-container { border: none; padding: 0; width: 100%; page-break-inside: avoid; }
+            }
+            img { max-width: 100%; height: auto; display: block; margin: 10px auto; }
+            .product-name { font-size: 14px; margin-bottom: 5px; font-weight: 500; }
+            .price { font-size: 16px; font-weight: bold; margin-top: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="label-container">
+            <div class="product-name">${product.name}</div>
+            <img src="${barcodeUrl}" alt="${sku}" />
+            <div class="price">${product.currency || '$'} ${Number(product.price).toFixed(2)}</div>
+          </div>
+          <script>
+            const img = document.querySelector('img');
+            img.onload = function() {
+              setTimeout(() => {
+                window.print();
+              }, 300);
+            };
+            img.onerror = function() {
+              document.body.innerHTML = '<p style="color:red; text-align:center;">Failed to load barcode. Please check connection.</p>';
+            };
+          </script>
+        </body>
+      </html>
+    `;
     
-    doc.setFontSize(10);
-    doc.text(`${product.currency || '$'} ${Number(product.price).toFixed(2)}`, 25, 27, { align: "center" });
-    
-    doc.save(`${sku}-label.pdf`);
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
   };
 
   const handleShare = (product) => {
