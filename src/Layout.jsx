@@ -19,6 +19,7 @@ import {
   } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
+import NotificationsMenu from '@/components/notifications/NotificationsMenu';
 import { Toaster } from "sonner";
 import { base44 } from "@/api/base44Client";
 
@@ -157,10 +158,7 @@ export default function Layout({ children, currentPageName }) {
             >
               <MessageSquare className="w-5 h-5" />
             </button>
-            <button className="p-2 text-gray-400 hover:text-gray-600 relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
+            <NotificationsMenu />
           </div>
         </header>
 
