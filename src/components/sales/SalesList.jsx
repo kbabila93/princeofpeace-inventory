@@ -9,8 +9,88 @@ import {
     TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Printer } from "lucide-react";
+import { toast } from "sonner";
 
 export default function SalesList({ sales, isLoading }) {
+    const handlePrintReceipt = (sale) => {
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        
+        if (!printWindow) {
+            toast.error("Please allow popups to print receipts");
+            return;
+        }
+
+        const items = JSON.parse(sale.items_json || "[]");
+        const dateStr = format(new Date(sale.date), 'MMM d, yyyy h:mm a');
+        
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Receipt - ${sale.id}</title>
+                <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+                <style>
+                  body { font-family: 'Courier New', Courier, monospace; padding: 20px; width: 300px; margin: 0 auto; }
+                  .header { text-align: center; margin-bottom: 20px; }
+                  .store-name { font-size: 24px; font-weight: bold; }
+                  .meta { font-size: 12px; margin-bottom: 20px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+                  .items { width: 100%; font-size: 14px; margin-bottom: 20px; }
+                  .items td { padding: 2px 0; }
+                  .items .price { text-align: right; }
+                  .total { border-top: 1px dashed #000; padding-top: 10px; font-weight: bold; text-align: right; margin-bottom: 20px; }
+                  .footer { text-align: center; font-size: 12px; margin-top: 30px; }
+                  #barcode { width: 100%; height: 50px; }
+                </style>
+              </head>
+              <body>
+                <div class="header">
+                  <div class="store-name">StockFlow</div>
+                  <div>Sales Receipt</div>
+                </div>
+                
+                <div class="meta">
+                  Date: ${dateStr}<br/>
+                  Sale ID: ${sale.id.substring(0, 8)}...
+                </div>
+                
+                <table class="items">
+                  ${items.map(item => `
+                    <tr>
+                      <td>${item.quantity}x ${item.name}</td>
+                      <td class="price">${(item.price * item.quantity).toFixed(2)}</td>
+                    </tr>
+                  `).join('')}
+                </table>
+                
+                <div class="total">
+                  Total: ${sale.currency || '$'} ${Number(sale.total_amount).toFixed(2)}
+                </div>
+                
+                <div class="footer">
+                  <svg id="barcode"></svg>
+                  <p>Thank you for your business!</p>
+                </div>
+
+                <script>
+                  try {
+                    JsBarcode("#barcode", "${sale.id}", {
+                      format: "CODE128",
+                      width: 2,
+                      height: 40,
+                      displayValue: false
+                    });
+                    setTimeout(() => window.print(), 500);
+                  } catch(e) { console.error(e); }
+                </script>
+              </body>
+            </html>
+        `;
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+    };
     if (isLoading) {
         return <div className="p-8 text-center text-gray-500">Loading sales history...</div>;
     }
@@ -33,6 +113,7 @@ export default function SalesList({ sales, isLoading }) {
                     <TableHead>Payment</TableHead>
                     <TableHead className="text-right">Profit</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -56,6 +137,16 @@ export default function SalesList({ sales, isLoading }) {
                         </TableCell>
                         <TableCell className="text-right font-bold text-gray-900">
                             {sale.currency || '$'} {(sale.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                            <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handlePrintReceipt(sale)}
+                                title="Print Receipt"
+                            >
+                                <Printer className="w-4 h-4 text-gray-500" />
+                            </Button>
                         </TableCell>
                     </TableRow>
                 ))}
