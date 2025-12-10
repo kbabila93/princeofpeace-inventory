@@ -33,6 +33,10 @@ const AVAILABLE_PERMISSIONS = [
   { id: 'manage_employees', label: 'Manage Employees' },
   { id: 'manage_transactions', label: 'View Transactions' },
   { id: 'delete_transactions', label: 'Delete Transactions' },
+  { id: 'delete_sales', label: 'Delete Sales History' },
+  { id: 'delete_inventory', label: 'Delete Inventory' },
+  { id: 'delete_expenditures', label: 'Delete Expenditures' },
+  { id: 'delete_employees', label: 'Delete Employees' },
   { id: 'manage_users', label: 'Manage Users (Admin)' },
 ];
 

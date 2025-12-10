@@ -62,7 +62,18 @@ export default function Inventory() {
     queryFn: () => base44.entities.Product.list(),
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const canDelete = user?.role === 'admin' || (user?.permissions || []).includes('delete_inventory');
+
   const handleDelete = async (id) => {
+    if (!canDelete) {
+      toast.error("You don't have permission to delete products");
+      return;
+    }
     if (confirm("Are you sure you want to delete this product?")) {
       await base44.entities.Product.delete(id);
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -289,12 +300,14 @@ export default function Inventory() {
                               <Pencil className="w-4 h-4 mr-2" /> Edit Details
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              className="text-red-600 focus:text-red-600"
-                              onClick={() => handleDelete(product.id)}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" /> Delete
-                            </DropdownMenuItem>
+                            {canDelete && (
+                              <DropdownMenuItem 
+                                className="text-red-600 focus:text-red-600"
+                                onClick={() => handleDelete(product.id)}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" /> Delete
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>

@@ -33,7 +33,18 @@ export default function Expenditures() {
     queryFn: () => base44.entities.Expenditure.list('-date'),
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const canDelete = user?.role === 'admin' || (user?.permissions || []).includes('delete_expenditures');
+
   const handleDelete = async (id) => {
+    if (!canDelete) {
+      toast.error("You don't have permission to delete expenditures");
+      return;
+    }
     if (confirm("Are you sure you want to delete this expenditure?")) {
       await base44.entities.Expenditure.delete(id);
       queryClient.invalidateQueries({ queryKey: ['expenditures'] });
