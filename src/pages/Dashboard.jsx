@@ -9,6 +9,7 @@ import {
   ArrowRight,
   History
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import StatsCard from '@/components/dashboard/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,45 +46,77 @@ export default function Dashboard() {
 
   const lowStockItems = products.filter(p => (p.quantity || 0) <= (p.low_stock_threshold || 10));
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="space-y-6">
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="space-y-6"
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard 
-          title="Total Products" 
-          value={totalProducts} 
-          icon={Package} 
-          color="blue"
-        />
-        <StatsCard 
-          title="Total Inventory Value" 
-          value={totalValueDisplay || "$0"} 
-          icon={DollarSign} 
-          color="green"
-        />
-        <StatsCard 
-          title="Low Stock Alerts" 
-          value={lowStockItems.length} 
-          description="Items need reordering"
-          icon={AlertTriangle} 
-          color={lowStockItems.length > 0 ? "red" : "orange"}
-        />
-        <StatsCard 
-          title="Total Units" 
-          value={totalItems} 
-          icon={TrendingUp} 
-          color="purple"
-        />
+        <motion.div variants={itemVariants}>
+          <StatsCard 
+            title="Total Products" 
+            value={totalProducts} 
+            icon={Package} 
+            color="blue"
+          />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <StatsCard 
+            title="Total Inventory Value" 
+            value={totalValueDisplay || "$0"} 
+            icon={DollarSign} 
+            color="green"
+          />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <StatsCard 
+            title="Low Stock Alerts" 
+            value={lowStockItems.length} 
+            description="Items need reordering"
+            icon={AlertTriangle} 
+            color={lowStockItems.length > 0 ? "red" : "orange"}
+          />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <StatsCard 
+            title="Total Units" 
+            value={totalItems} 
+            icon={TrendingUp} 
+            color="purple"
+          />
+        </motion.div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Low Stock Alert Section */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Low Stock Alerts</CardTitle>
-            <Button variant="outline" size="sm" asChild>
-              <Link to={createPageUrl("Inventory")}>View All Inventory</Link>
-            </Button>
-          </CardHeader>
+        <motion.div variants={itemVariants} className="lg:col-span-2">
+          <Card className="h-full border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-orange-500" />
+                Low Stock Alerts
+              </CardTitle>
+              <Button variant="outline" size="sm" asChild className="hover:bg-slate-50">
+                <Link to={createPageUrl("Inventory")}>View All Inventory</Link>
+              </Button>
+            </CardHeader>
           <CardContent>
             {lowStockItems.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -124,12 +157,16 @@ export default function Dashboard() {
         </Card>
 
         {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
+        <motion.div variants={itemVariants}>
+          <Card className="h-full border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="border-b border-slate-50 pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <History className="w-5 h-5 text-blue-500" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-6">
               {recentTransactions.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">No recent activity</p>
               ) : (
@@ -149,7 +186,7 @@ export default function Dashboard() {
                   </div>
                 ))
               )}
-              <Button variant="ghost" size="sm" className="w-full text-gray-500" asChild>
+              <Button variant="ghost" size="sm" className="w-full text-slate-500 hover:text-indigo-600 hover:bg-indigo-50" asChild>
                 <Link to={createPageUrl("Transactions")}>
                   View All History <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
@@ -157,7 +194,8 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+      </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
