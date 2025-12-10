@@ -161,6 +161,17 @@ export default function EmployeeForm({ isOpen, onClose, employee }) {
                   <SelectItem value="AUD">AUD ($)</SelectItem>
                   <SelectItem value="JPY">JPY (¥)</SelectItem>
                   <SelectItem value="INR">INR (₹)</SelectItem>
+                  <SelectItem value="NGN">NGN (₦)</SelectItem>
+                  <SelectItem value="ZAR">ZAR (R)</SelectItem>
+                  <SelectItem value="KES">KES (KSh)</SelectItem>
+                  <SelectItem value="GHS">GHS (₵)</SelectItem>
+                  <SelectItem value="EGP">EGP (E£)</SelectItem>
+                  <SelectItem value="XOF">XOF (CFA)</SelectItem>
+                  <SelectItem value="XAF">XAF (FCFA)</SelectItem>
+                  <SelectItem value="TZS">TZS (TSh)</SelectItem>
+                  <SelectItem value="UGX">UGX (USh)</SelectItem>
+                  <SelectItem value="ETB">ETB (Br)</SelectItem>
+                  <SelectItem value="MAD">MAD (DH)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

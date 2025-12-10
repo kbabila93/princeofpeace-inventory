@@ -311,7 +311,18 @@ export default function NewSaleModal({ isOpen, onClose }) {
                                         <SelectItem value="AUD">AUD</SelectItem>
                                         <SelectItem value="JPY">JPY</SelectItem>
                                         <SelectItem value="INR">INR</SelectItem>
-                                    </SelectContent>
+                                        <SelectItem value="NGN">NGN</SelectItem>
+                                        <SelectItem value="ZAR">ZAR</SelectItem>
+                                        <SelectItem value="KES">KES</SelectItem>
+                                        <SelectItem value="GHS">GHS</SelectItem>
+                                        <SelectItem value="EGP">EGP</SelectItem>
+                                        <SelectItem value="XOF">XOF</SelectItem>
+                                        <SelectItem value="XAF">XAF</SelectItem>
+                                        <SelectItem value="TZS">TZS</SelectItem>
+                                        <SelectItem value="UGX">UGX</SelectItem>
+                                        <SelectItem value="ETB">ETB</SelectItem>
+                                        <SelectItem value="MAD">MAD</SelectItem>
+                                        </SelectContent>
                                 </Select>
                             </div>
                             <div className="space-y-2">
