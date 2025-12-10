@@ -6,6 +6,7 @@ import Expenditures from './pages/Expenditures';
 import Employees from './pages/Employees';
 import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
+import AdvertGenerator from './pages/AdvertGenerator';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "Employees": Employees,
     "Users": Users,
     "VideoConference": VideoConference,
+    "AdvertGenerator": AdvertGenerator,
 }
 
 export const pagesConfig = {

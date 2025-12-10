@@ -15,7 +15,8 @@ import {
   Bell,
   MessageSquare,
   Shield,
-  Video
+  Video,
+  Megaphone
   } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
@@ -41,7 +42,8 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Inventory', href: 'Inventory', icon: Package, permission: 'manage_inventory' },
     { name: 'Employees', href: 'Employees', icon: Users, permission: 'manage_employees' },
     { name: 'Transactions', href: 'Transactions', icon: History, permission: 'manage_transactions' },
-    { name: 'Meetings', href: 'VideoConference', icon: Video, permission: 'view_dashboard' }, // Available to everyone with dashboard access
+    { name: 'Meetings', href: 'VideoConference', icon: Video, permission: 'view_dashboard' },
+    { name: 'Marketing', href: 'AdvertGenerator', icon: Megaphone, permission: 'view_dashboard' },
     ];
 
   if (user?.role === 'admin') {

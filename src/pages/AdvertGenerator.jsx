@@ -1,0 +1,282 @@
+import React, { useState } from 'react';
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { 
+  Megaphone, 
+  Instagram, 
+  Facebook, 
+  Twitter, 
+  Video, 
+  Image as ImageIcon,
+  Loader2,
+  Share2,
+  Copy,
+  Sparkles,
+  Play
+} from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+
+export default function AdvertGenerator() {
+  const [selectedProductId, setSelectedProductId] = useState("");
+  const [platform, setPlatform] = useState("instagram");
+  const [tone, setTone] = useState("exciting");
+  
+  const [generatedContent, setGeneratedContent] = useState(null);
+  
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => base44.entities.Product.list(),
+  });
+
+  const selectedProduct = products.find(p => p.id === selectedProductId);
+
+  const generateAdMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedProduct) throw new Error("Please select a product");
+
+      // 1. Generate Text
+      const prompt = `Write a catchy social media post for a product named "${selectedProduct.name}".
+      Product Description: ${selectedProduct.description || 'Amazing product'}.
+      Price: ${selectedProduct.currency} ${selectedProduct.price}.
+      Platform: ${platform}.
+      Tone: ${tone}.
+      Include engaging emojis and hashtags. 
+      Return ONLY the text content.`;
+
+      const textResponse = await base44.integrations.Core.InvokeLLM({ prompt });
+      
+      // 2. Generate Image
+      const imagePrompt = `Professional product photography of ${selectedProduct.name}, ${selectedProduct.description}, 
+      advertising style, high quality, 4k, cinematic lighting, trendy, appealing for ${platform} social media.`;
+      
+      const imageResponse = await base44.integrations.Core.GenerateImage({ prompt: imagePrompt });
+
+      return {
+        text: textResponse,
+        imageUrl: imageResponse.url,
+        productName: selectedProduct.name,
+        price: `${selectedProduct.currency} ${selectedProduct.price}`
+      };
+    },
+    onSuccess: (data) => {
+      setGeneratedContent(data);
+      toast.success("Advert generated successfully!");
+    },
+    onError: (error) => {
+      toast.error("Failed to generate advert: " + error.message);
+    }
+  });
+
+  const handleCopy = () => {
+    if (generatedContent?.text) {
+      navigator.clipboard.writeText(generatedContent.text);
+      toast.success("Caption copied to clipboard");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <Megaphone className="w-8 h-8 text-indigo-600" />
+          Advert Generator
+        </h1>
+        <p className="text-gray-500">Create AI-powered social media adverts for your products in seconds.</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Controls */}
+        <Card className="h-fit">
+          <CardHeader>
+            <CardTitle>Configuration</CardTitle>
+            <CardDescription>Choose your target and style</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Select Product</Label>
+              <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a product..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {products.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Platform</Label>
+              <Select value={platform} onValueChange={setPlatform}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="instagram">Instagram</SelectItem>
+                  <SelectItem value="facebook">Facebook</SelectItem>
+                  <SelectItem value="twitter">Twitter / X</SelectItem>
+                  <SelectItem value="tiktok">TikTok</SelectItem>
+                  <SelectItem value="linkedin">LinkedIn</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tone</Label>
+              <Select value={tone} onValueChange={setTone}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="exciting">Exciting & Energetic</SelectItem>
+                  <SelectItem value="professional">Professional & Clean</SelectItem>
+                  <SelectItem value="minimalist">Minimalist & Modern</SelectItem>
+                  <SelectItem value="luxury">Luxury & Premium</SelectItem>
+                  <SelectItem value="urgent">Urgent (Sale/Limited)</SelectItem>
+                  <SelectItem value="friendly">Friendly & Casual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button 
+              className="w-full bg-indigo-600 hover:bg-indigo-700" 
+              onClick={() => generateAdMutation.mutate()}
+              disabled={!selectedProductId || generateAdMutation.isPending}
+            >
+              {generateAdMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Generating Magic...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Advert
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Preview */}
+        <div className="lg:col-span-2">
+          {generatedContent ? (
+            <Tabs defaultValue="image" className="w-full">
+              <div className="flex justify-between items-center mb-4">
+                <TabsList>
+                  <TabsTrigger value="image" className="flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4" /> Image Post
+                  </TabsTrigger>
+                  <TabsTrigger value="video" className="flex items-center gap-2">
+                    <Video className="w-4 h-4" /> Video Story
+                  </TabsTrigger>
+                </TabsList>
+                <Button variant="outline" size="sm" onClick={handleCopy}>
+                  <Copy className="w-4 h-4 mr-2" /> Copy Caption
+                </Button>
+              </div>
+
+              <TabsContent value="image" className="mt-0">
+                <Card>
+                  <CardContent className="p-6 grid md:grid-cols-2 gap-6">
+                    <div className="relative group rounded-lg overflow-hidden border bg-gray-100">
+                      <img 
+                        src={generatedContent.imageUrl} 
+                        alt="Generated Ad" 
+                        className="w-full h-auto object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button variant="secondary" onClick={() => window.open(generatedContent.imageUrl, '_blank')}>
+                          <Download className="w-4 h-4 mr-2" /> Download
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-500 uppercase">
+                        {platform === 'twitter' ? <Twitter className="w-4 h-4" /> : 
+                         platform === 'facebook' ? <Facebook className="w-4 h-4" /> :
+                         <Instagram className="w-4 h-4" />}
+                        Preview
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-lg whitespace-pre-wrap text-sm border">
+                        {generatedContent.text}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="video" className="mt-0">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="max-w-xs mx-auto aspect-[9/16] bg-black rounded-xl overflow-hidden relative shadow-2xl">
+                        {/* Video Story Animation */}
+                        <motion.div 
+                            className="absolute inset-0"
+                            animate={{ scale: [1, 1.1] }}
+                            transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
+                        >
+                            <img 
+                                src={generatedContent.imageUrl} 
+                                alt="Background" 
+                                className="w-full h-full object-cover opacity-80"
+                            />
+                        </motion.div>
+                        
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30 flex flex-col justify-end p-6 text-white">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5 }}
+                            >
+                                <h3 className="text-2xl font-bold mb-2">{generatedContent.productName}</h3>
+                                <div className="text-3xl font-bold text-yellow-400 mb-4">{generatedContent.price}</div>
+                                <p className="text-sm line-clamp-3 opacity-90 mb-6 font-medium">
+                                    {generatedContent.text}
+                                </p>
+                                <Button className="w-full bg-white text-black hover:bg-gray-200">
+                                    Shop Now
+                                </Button>
+                            </motion.div>
+                        </div>
+
+                        {/* Stories Progress Bar */}
+                        <div className="absolute top-4 left-4 right-4 flex gap-1">
+                            <div className="h-1 bg-white/30 flex-1 rounded-full overflow-hidden">
+                                <motion.div 
+                                    className="h-full bg-white"
+                                    initial={{ width: "0%" }}
+                                    animate={{ width: "100%" }}
+                                    transition={{ duration: 5, repeat: Infinity }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-center mt-6 text-gray-500 text-sm">
+                        <p>Video Preview Mode</p>
+                        <p className="text-xs mt-1">Screen record this preview or use the image assets to create your reel.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <div className="h-[400px] border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
+              <Sparkles className="w-12 h-12 mb-4 opacity-50" />
+              <p className="font-medium">Ready to create something amazing?</p>
+              <p className="text-sm">Select a product and click Generate</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
