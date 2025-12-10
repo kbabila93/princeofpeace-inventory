@@ -25,11 +25,23 @@ export default function PWAInstallPrompt() {
 
     window.addEventListener('beforeinstallprompt', handler);
 
+    const openHandler = () => {
+        if (ios) {
+            setShowIOSHelp(true);
+        } else {
+            setIsVisible(true);
+        }
+    };
+    window.addEventListener('open-install-prompt', openHandler);
+
     if (ios && !isStandalone && !sessionStorage.getItem('pwa_prompt_dismissed')) {
       setIsVisible(true);
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => {
+        window.removeEventListener('beforeinstallprompt', handler);
+        window.removeEventListener('open-install-prompt', openHandler);
+    };
   }, []);
 
   const handleInstallClick = async () => {

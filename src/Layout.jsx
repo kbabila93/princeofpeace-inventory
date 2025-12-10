@@ -18,7 +18,8 @@ import {
   Video,
   Megaphone,
   Truck,
-  Radio
+  Radio,
+  Download
   } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
@@ -155,6 +156,14 @@ export default function Layout({ children, currentPageName }) {
                 <p className="text-xs text-slate-500 truncate">{user?.email || 'Loading...'}</p>
               </div>
             </div>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 mb-1"
+              onClick={() => window.dispatchEvent(new Event('open-install-prompt'))}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Install App
+            </Button>
             <Button 
               variant="ghost" 
               className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
