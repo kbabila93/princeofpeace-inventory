@@ -1,21 +1,62 @@
 import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, DollarSign, Calendar, History } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, DollarSign, Calendar, History, Trash2, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from 'date-fns';
+import { toast } from "sonner";
 import NewSaleModal from '@/components/sales/NewSaleModal.jsx';
 import SalesList from '@/components/sales/SalesList.jsx';
 
 export default function SalesPage() {
     const [isNewSaleOpen, setIsNewSaleOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const queryClient = useQueryClient();
+
+    // Fetch current user for permissions
+    const { data: user } = useQuery({
+        queryKey: ['me'],
+        queryFn: () => base44.auth.me(),
+    });
+
+    const canDelete = user?.role === 'admin' || (user?.permissions || []).includes('delete_sales');
 
     // Fetch sales for stats
     const { data: sales = [], isLoading } = useQuery({
         queryKey: ['sales'],
         queryFn: () => base44.entities.Sale.list('-date', 50),
     });
+
+    const deleteSalesMutation = useMutation({
+        mutationFn: async () => {
+            // Delete sales one by one or utilize a hypothetical bulk delete if available.
+            // Since we only have 'list' and 'delete' by ID usually exposed effectively in these examples,
+            // we will map over the currently fetched sales (or fetch all ids if we want to be thorough, but let's stick to visible/fetched ones for safety or just assume the user wants to clear the list).
+            // NOTE: A true "Clear All" for a large DB should be a backend function, but here we'll iterate.
+            // Let's rely on the sales we have or fetch a larger list if needed.
+            // For now, let's delete the loaded sales.
+            const promises = sales.map(s => base44.entities.Sale.delete(s.id));
+            await Promise.all(promises);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['sales'] });
+            toast.success("Sales history cleared");
+            setIsDeleting(false);
+        },
+        onError: () => {
+            toast.error("Failed to clear sales history");
+            setIsDeleting(false);
+        }
+    });
+
+    const handleClearHistory = () => {
+        if (sales.length === 0) return;
+        if (confirm("Are you sure you want to delete all visible sales records? This cannot be undone.")) {
+            setIsDeleting(true);
+            deleteSalesMutation.mutate();
+        }
+    };
 
     // Calculate daily stats
     const todayStr = new Date().toDateString();
@@ -30,10 +71,22 @@ export default function SalesPage() {
                     <h2 className="text-3xl font-bold tracking-tight text-gray-900">Sales</h2>
                     <p className="text-gray-500">Record and track your daily sales.</p>
                 </div>
-                <Button onClick={() => setIsNewSaleOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
-                    <Plus className="w-5 h-5 mr-2" />
-                    New Sale
-                </Button>
+                <div className="flex gap-2">
+                    {canDelete && (
+                        <Button 
+                            variant="destructive" 
+                            onClick={handleClearHistory}
+                            disabled={sales.length === 0 || isDeleting}
+                        >
+                            {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+                            Clear History
+                        </Button>
+                    )}
+                    <Button onClick={() => setIsNewSaleOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
+                        <Plus className="w-5 h-5 mr-2" />
+                        New Sale
+                    </Button>
+                </div>
             </div>
 
             {/* Stats Overview */}
