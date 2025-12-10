@@ -8,7 +8,9 @@ import {
   Check,
   Save,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Mail
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,6 +78,14 @@ export default function UsersPage() {
     updatePermissionsMutation.mutate({ userId, permissions: newPermissions });
   };
 
+  const handleInviteUser = () => {
+    toast.info("Invite Users via Dashboard", {
+      description: "To add new users, please use the 'Invite User' feature in your Base44 App Dashboard settings.",
+      duration: 6000,
+      icon: <Mail className="w-4 h-4" />
+    });
+  };
+
   const filteredUsers = users.filter(user => 
     user.email.toLowerCase().includes(search.toLowerCase()) || 
     (user.full_name && user.full_name.toLowerCase().includes(search.toLowerCase()))
@@ -102,14 +112,20 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
           <p className="text-gray-500">Define access rights and permissions for system users.</p>
         </div>
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input 
-            placeholder="Search users..." 
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input 
+              placeholder="Search users..." 
+              className="pl-9"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <Button onClick={handleInviteUser} className="bg-indigo-600 hover:bg-indigo-700 whitespace-nowrap">
+            <Plus className="w-4 h-4 mr-2" />
+            Invite User
+          </Button>
         </div>
       </div>
 
