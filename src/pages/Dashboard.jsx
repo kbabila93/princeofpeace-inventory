@@ -201,10 +201,6 @@ export default function Dashboard() {
             </Card>
           </div>
         </motion.div>
-              <Button variant="outline" size="sm" asChild className="hover:bg-slate-50">
-                <Link to={createPageUrl("Inventory")}>View All Inventory</Link>
-              </Button>
-            </CardHeader>
 
 
         {/* Recent Activity */}
