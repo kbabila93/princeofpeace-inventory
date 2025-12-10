@@ -44,7 +44,9 @@ import {
 import ProductForm from '@/components/inventory/ProductForm';
 import StockAdjustmentDialog from '@/components/inventory/StockAdjustmentDialog';
 import ShareProductDialog from '@/components/inventory/ShareProductDialog';
+import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
 import { toast } from 'sonner';
+import { ScanBarcode } from 'lucide-react';
 
 export default function Inventory() {
   const [search, setSearch] = useState("");
@@ -54,7 +56,9 @@ export default function Inventory() {
   
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [initialSku, setInitialSku] = useState(null);
   const [shareDialog, setShareDialog] = useState({ isOpen: false, product: null });
+  const [scanDialog, setScanDialog] = useState(false);
 
   const [stockAdjustment, setStockAdjustment] = useState({ isOpen: false, product: null, type: 'in' });
 
@@ -110,7 +114,20 @@ export default function Inventory() {
 
   const handleCreate = () => {
     setEditingProduct(null);
+    setInitialSku(null);
     setIsProductFormOpen(true);
+  };
+
+  const handleScanResult = ({ sku, product }) => {
+    if (product) {
+      setSearch(sku); // Filter to show the product
+      toast.success("Product found");
+    } else {
+      toast.info("Product not found. Create it now.");
+      setEditingProduct(null);
+      setInitialSku(sku);
+      setIsProductFormOpen(true);
+    }
   };
 
   const openStockAdjustment = (product, type) => {
@@ -298,6 +315,10 @@ export default function Inventory() {
             </SelectContent>
           </Select>
         </div>
+        <Button onClick={() => setScanDialog(true)} variant="outline">
+          <ScanBarcode className="w-4 h-4 mr-2" />
+          Scan Item
+        </Button>
         <Button onClick={handlePrintReport} variant="outline" className="mr-0">
           <Printer className="w-4 h-4 mr-2" />
           Print List
@@ -443,7 +464,14 @@ export default function Inventory() {
       <ProductForm 
         isOpen={isProductFormOpen} 
         onClose={() => setIsProductFormOpen(false)} 
-        product={editingProduct} 
+        product={editingProduct}
+        initialSku={initialSku}
+      />
+
+      <ScanLookupDialog
+        isOpen={scanDialog}
+        onClose={() => setScanDialog(false)}
+        onScan={handleScanResult}
       />
 
       <StockAdjustmentDialog

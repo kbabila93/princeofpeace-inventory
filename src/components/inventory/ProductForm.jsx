@@ -14,11 +14,11 @@ const generateSKU = () => {
   return "PRD-" + Math.floor(10000000 + Math.random() * 90000000).toString();
 };
 
-export default function ProductForm({ isOpen, onClose, product }) {
+export default function ProductForm({ isOpen, onClose, product, initialSku }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState(product || {
     name: "",
-    sku: generateSKU(),
+    sku: initialSku || generateSKU(),
     category: "other",
     section: "Main",
     price: "",
@@ -37,7 +37,7 @@ export default function ProductForm({ isOpen, onClose, product }) {
       } else {
         setFormData({
             name: "",
-            sku: generateSKU(),
+            sku: initialSku || generateSKU(),
             category: "other",
             section: "Main",
             price: "",
@@ -50,7 +50,7 @@ export default function ProductForm({ isOpen, onClose, product }) {
         });
       }
     }
-  }, [isOpen, product]);
+  }, [isOpen, product, initialSku]);
 
   const isEditing = !!product;
 
@@ -109,6 +109,12 @@ export default function ProductForm({ isOpen, onClose, product }) {
                   id="sku"
                   value={formData.sku}
                   onChange={(e) => setFormData({...formData, sku: e.target.value})}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      document.getElementById('name')?.focus();
+                    }
+                  }}
                   placeholder="Auto-generated"
                 />
                 <Button 
