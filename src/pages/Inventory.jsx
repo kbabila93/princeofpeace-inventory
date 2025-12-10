@@ -48,7 +48,7 @@ import StockAdjustmentDialog from '@/components/inventory/StockAdjustmentDialog'
 import ShareProductDialog from '@/components/inventory/ShareProductDialog';
 import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
 import PrinterSettingsDialog from '@/components/inventory/PrinterSettingsDialog';
-import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
+import { useBarcodeScanner } from '@/components/hooks/useBarcodeScanner';
 import { toast } from 'sonner';
 import { ScanBarcode } from 'lucide-react';
 
@@ -160,16 +160,19 @@ export default function Inventory() {
 
   const handlePrintLabel = (product) => {
     const sku = product.sku || "NO SKU";
-    const printWindow = window.open('', '_blank', 'width=500,height=400');
+    const printWindow = window.open('', '_blank', `width=${printerSettings.width * 10},height=${printerSettings.height * 10}`);
     
     if (!printWindow) {
       toast.error("Please allow popups to print labels");
       return;
     }
 
-    // Escape special chars for HTML and JS
     const safeName = product.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const safeSku = sku.replace(/"/g, '\\"');
+    
+    // CSS to match selected dimensions
+    const widthStyle = `${printerSettings.width}${printerSettings.unit}`;
+    const heightStyle = `${printerSettings.height}${printerSettings.unit}`;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -178,32 +181,54 @@ export default function Inventory() {
           <title>Label - ${safeName}</title>
           <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
           <style>
+            @page {
+              size: ${widthStyle} ${heightStyle};
+              margin: 0;
+            }
             body {
               font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+              width: ${widthStyle};
+              height: ${heightStyle};
               display: flex;
               flex-direction: column;
               align-items: center;
               justify-content: center;
-              height: 100vh;
-              margin: 0;
+              overflow: hidden;
             }
-            .label-container {
-              width: 300px;
-              padding: 15px;
+            .label-content {
               text-align: center;
-              border: 1px dashed #ccc;
+              width: 95%;
+              height: 95%;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
             }
-            @media print {
-              body { display: block; height: auto; }
-              .label-container { border: none; padding: 0; width: 100%; page-break-inside: avoid; }
+            #barcode { 
+              width: 100%; 
+              height: auto; 
+              max-height: 60%;
+              display: block; 
             }
-            #barcode { max-width: 100%; height: auto; display: block; margin: 10px auto; }
-            .product-name { font-size: 14px; margin-bottom: 5px; font-weight: 500; }
-            .price { font-size: 16px; font-weight: bold; margin-top: 5px; }
+            .product-name { 
+              font-size: 10px; 
+              font-weight: bold; 
+              margin-bottom: 2px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 100%;
+            }
+            .price { 
+              font-size: 12px; 
+              font-weight: bold; 
+            }
           </style>
         </head>
         <body>
-          <div class="label-container">
+          <div class="label-content">
             <div class="product-name">${safeName}</div>
             <svg id="barcode"></svg>
             <div class="price">${product.currency || '$'} ${Number(product.price).toFixed(2)}</div>
@@ -213,16 +238,17 @@ export default function Inventory() {
               JsBarcode("#barcode", "${safeSku}", {
                 format: "CODE128",
                 width: 2,
-                height: 50,
+                height: 40,
                 displayValue: true,
-                margin: 0
+                margin: 0,
+                fontSize: 10
               });
               
               setTimeout(() => {
                 window.print();
               }, 500);
             } catch (e) {
-              document.body.innerHTML = '<p style="color:red; text-align:center;">Failed to generate barcode: ' + e.message + '</p>';
+              document.body.innerHTML = '<p style="color:red; text-align:center;">Error</p>';
             }
           </script>
         </body>
