@@ -12,7 +12,9 @@ import {
   Pencil,
   Trash2,
   Printer,
-  Share2
+  Share2,
+  Settings,
+  QrCode
   } from 'lucide-react';
   import { jsPDF } from "jspdf";
   import { Button } from "@/components/ui/button";
@@ -45,6 +47,8 @@ import ProductForm from '@/components/inventory/ProductForm';
 import StockAdjustmentDialog from '@/components/inventory/StockAdjustmentDialog';
 import ShareProductDialog from '@/components/inventory/ShareProductDialog';
 import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
+import PrinterSettingsDialog from '@/components/inventory/PrinterSettingsDialog';
+import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
 import { toast } from 'sonner';
 import { ScanBarcode } from 'lucide-react';
 
@@ -59,10 +63,30 @@ export default function Inventory() {
   const [initialSku, setInitialSku] = useState(null);
   const [shareDialog, setShareDialog] = useState({ isOpen: false, product: null });
   const [scanDialog, setScanDialog] = useState(false);
+  const [printerSettingsOpen, setPrinterSettingsOpen] = useState(false);
+  const [printerSettings, setPrinterSettings] = useState({ preset: 'standard', width: 50, height: 30, unit: 'mm' });
 
   const [stockAdjustment, setStockAdjustment] = useState({ isOpen: false, product: null, type: 'in' });
 
   const queryClient = useQueryClient();
+
+  // Global scanner listener
+  useBarcodeScanner({
+    onScan: (code) => {
+      // Check if product exists
+      const product = products.find(p => p.sku === code);
+      if (product) {
+        setSearch(code);
+        toast.success(`Found: ${product.name}`);
+      } else {
+        // If not found, open form to create
+        setInitialSku(code);
+        setEditingProduct(null);
+        setIsProductFormOpen(true);
+        toast.info("Product not found. Create it?");
+      }
+    }
+  });
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['products'],
@@ -315,10 +339,15 @@ export default function Inventory() {
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={() => setScanDialog(true)} variant="outline">
-          <ScanBarcode className="w-4 h-4 mr-2" />
-          Scan Item
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setScanDialog(true)} variant="outline" title="Manual Scan / Lookup">
+            <ScanBarcode className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Scan</span>
+          </Button>
+          <Button onClick={() => setPrinterSettingsOpen(true)} variant="outline" size="icon" title="Printer Settings">
+            <Settings className="w-4 h-4" />
+          </Button>
+        </div>
         <Button onClick={handlePrintReport} variant="outline" className="mr-0">
           <Printer className="w-4 h-4 mr-2" />
           Print List
@@ -472,6 +501,13 @@ export default function Inventory() {
         isOpen={scanDialog}
         onClose={() => setScanDialog(false)}
         onScan={handleScanResult}
+      />
+
+      <PrinterSettingsDialog 
+        isOpen={printerSettingsOpen}
+        onClose={() => setPrinterSettingsOpen(false)}
+        settings={printerSettings}
+        onSave={setPrinterSettings}
       />
 
       <StockAdjustmentDialog
