@@ -35,6 +35,20 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
+
+    // Add PWA meta tags for iOS and others
+    const addMeta = (name, content) => {
+      if (!document.querySelector(`meta[name="${name}"]`)) {
+        const meta = document.createElement('meta');
+        meta.name = name;
+        meta.content = content;
+        document.head.appendChild(meta);
+      }
+    };
+
+    addMeta("apple-mobile-web-app-capable", "yes");
+    addMeta("apple-mobile-web-app-status-bar-style", "black-translucent");
+    addMeta("theme-color", "#4f46e5");
   }, []);
 
   const navigation = [

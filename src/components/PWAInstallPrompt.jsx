@@ -1,34 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Download, X } from "lucide-react";
+import { Download, X, Share, PlusSquare } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export default function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [showIOSHelp, setShowIOSHelp] = useState(false);
 
   useEffect(() => {
-    // Check if it's iOS
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     setIsIOS(ios);
 
-    // Check if already in standalone mode
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (isStandalone) return;
 
     const handler = (e) => {
-      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
-      // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
-      // Update UI notify the user they can install the PWA
       setIsVisible(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    // For iOS, we might want to show it once per session if not installed
     if (ios && !isStandalone && !sessionStorage.getItem('pwa_prompt_dismissed')) {
       setIsVisible(true);
     }
@@ -39,25 +35,14 @@ export default function PWAInstallPrompt() {
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
       if (isIOS) {
-        toast.info("To install on iOS: Tap the Share button and select 'Add to Home Screen'", {
-          duration: 5000,
-        });
+        setShowIOSHelp(true);
       }
       return;
     }
 
-    // Hide the app provided install promotion
     setIsVisible(false);
-    // Show the install prompt
     deferredPrompt.prompt();
-    // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
-    }
     setDeferredPrompt(null);
   };
 
@@ -66,44 +51,82 @@ export default function PWAInstallPrompt() {
     sessionStorage.setItem('pwa_prompt_dismissed', 'true');
   };
 
-  if (!isVisible) return null;
+  if (!isVisible && !showIOSHelp) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96">
-      <div className="bg-indigo-600 text-white p-4 rounded-xl shadow-lg shadow-indigo-200 flex items-start gap-4">
-        <div className="p-2 bg-white/20 rounded-lg">
-          <Download className="w-6 h-6 text-white" />
-        </div>
-        <div className="flex-1">
-          <h3 className="font-semibold text-lg mb-1">Install App</h3>
-          <p className="text-indigo-100 text-sm mb-3">
-            {isIOS 
-              ? "Install this app on your iPhone for a better experience." 
-              : "Install this app on your device for quick access and offline capabilities."}
-          </p>
-          <div className="flex gap-2">
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              className="bg-white text-indigo-600 hover:bg-indigo-50 border-none"
-              onClick={handleInstallClick}
-            >
-              {isIOS ? "How to Install" : "Install Now"}
-            </Button>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="text-white hover:bg-white/20"
-              onClick={handleDismiss}
-            >
-              Maybe Later
-            </Button>
+    <>
+      {isVisible && (
+        <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96 animate-in slide-in-from-bottom-10 fade-in duration-500">
+          <div className="bg-indigo-600 text-white p-4 rounded-xl shadow-lg shadow-indigo-200 flex items-start gap-4">
+            <div className="p-2 bg-white/20 rounded-lg">
+              <Download className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg mb-1">Install App</h3>
+              <p className="text-indigo-100 text-sm mb-3">
+                {isIOS 
+                  ? "Install on your iPhone for the best experience." 
+                  : "Install for quick access and better performance."}
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  className="bg-white text-indigo-600 hover:bg-indigo-50 border-none"
+                  onClick={handleInstallClick}
+                >
+                  {isIOS ? "How to Install" : "Install Now"}
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="text-white hover:bg-white/20"
+                  onClick={handleDismiss}
+                >
+                  Later
+                </Button>
+              </div>
+            </div>
+            <button onClick={handleDismiss} className="text-white/60 hover:text-white">
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
-        <button onClick={handleDismiss} className="text-white/60 hover:text-white">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
+      )}
+
+      <Dialog open={showIOSHelp} onOpenChange={setShowIOSHelp}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Install on iOS</DialogTitle>
+            <DialogDescription>
+              Follow these steps to add this app to your home screen:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <Share className="w-5 h-5 text-blue-500" />
+              </div>
+              <p className="text-sm">1. Tap the <span className="font-bold">Share</span> button in your browser menu bar.</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <PlusSquare className="w-5 h-5 text-gray-700" />
+              </div>
+              <p className="text-sm">2. Scroll down and tap <span className="font-bold">Add to Home Screen</span>.</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <span className="font-bold text-lg text-indigo-600">3</span>
+              </div>
+              <p className="text-sm">3. Tap <span className="font-bold">Add</span> in the top right corner.</p>
+            </div>
+          </div>
+          <Button onClick={() => setShowIOSHelp(false)} className="w-full">
+            Got it
+          </Button>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
