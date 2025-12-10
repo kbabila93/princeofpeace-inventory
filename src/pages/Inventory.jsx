@@ -11,10 +11,11 @@ import {
   AlertCircle,
   Pencil,
   Trash2,
-  Printer
-} from 'lucide-react';
-import { jsPDF } from "jspdf";
-import { Button } from "@/components/ui/button";
+  Printer,
+  Share2
+  } from 'lucide-react';
+  import { jsPDF } from "jspdf";
+  import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -42,6 +43,7 @@ import {
 } from "@/components/ui/select";
 import ProductForm from '@/components/inventory/ProductForm';
 import StockAdjustmentDialog from '@/components/inventory/StockAdjustmentDialog';
+import ShareProductDialog from '@/components/inventory/ShareProductDialog';
 import { toast } from 'sonner';
 
 export default function Inventory() {
@@ -52,7 +54,8 @@ export default function Inventory() {
   
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  
+  const [shareDialog, setShareDialog] = useState({ isOpen: false, product: null });
+
   const [stockAdjustment, setStockAdjustment] = useState({ isOpen: false, product: null, type: 'in' });
 
   const queryClient = useQueryClient();
@@ -133,9 +136,21 @@ export default function Inventory() {
     doc.save(`${product.sku || 'product'}-label.pdf`);
   };
 
+  const handleShare = (product) => {
+    if (navigator.share) {
+      navigator.share({
+        title: product.name,
+        text: `Check out ${product.name} - ${product.currency} ${Number(product.price).toFixed(2)}`,
+        url: `${window.location.origin}/Inventory?search=${encodeURIComponent(product.sku || product.name)}`
+      }).catch((error) => console.log('Error sharing', error));
+    } else {
+      setShareDialog({ isOpen: true, product });
+    }
+  };
+
   const handlePrintReport = () => {
     const doc = new jsPDF();
-    
+
     doc.setFontSize(20);
     doc.text("Inventory Report", 14, 22);
     
@@ -342,6 +357,9 @@ export default function Inventory() {
                             <DropdownMenuItem onClick={() => handlePrintLabel(product)}>
                               <Printer className="w-4 h-4 mr-2" /> Print Label
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleShare(product)}>
+                              <Share2 className="w-4 h-4 mr-2" /> Share Product
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEdit(product)}>
                               <Pencil className="w-4 h-4 mr-2" /> Edit Details
                             </DropdownMenuItem>
@@ -378,6 +396,12 @@ export default function Inventory() {
         product={stockAdjustment.product}
         type={stockAdjustment.type}
       />
-    </div>
-  );
-}
+
+      <ShareProductDialog 
+        isOpen={shareDialog.isOpen} 
+        onClose={() => setShareDialog({ ...shareDialog, isOpen: false })} 
+        product={shareDialog.product} 
+      />
+      </div>
+      );
+      }
