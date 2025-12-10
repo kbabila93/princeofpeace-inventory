@@ -12,7 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Plus, ShoppingCart } from 'lucide-react';
+import { Trash2, Plus, ShoppingCart, ScanBarcode } from 'lucide-react';
+import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
+import { toast } from 'sonner';
 
 export default function NewSaleModal({ isOpen, onClose }) {
     const queryClient = useQueryClient();
@@ -25,6 +27,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
     const [currency, setCurrency] = useState("USD");
     const [paymentMethod, setPaymentMethod] = useState("cash");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isScanOpen, setIsScanOpen] = useState(false);
 
     // Fetch products
     const { data: products = [] } = useQuery({
@@ -60,21 +63,21 @@ export default function NewSaleModal({ isOpen, onClose }) {
 
     const selectedProduct = products.find(p => p.id === selectedProductId);
 
-    const addToCart = () => {
-        if (!selectedProduct) return;
+    const addItemToCart = (product, quantity, price) => {
+        if (!product) return;
         
-        const amountToAdd = Number(qty);
-        const pricePerUnit = Number(unitPrice);
+        const amountToAdd = Number(quantity);
+        const pricePerUnit = Number(price);
 
         if (amountToAdd <= 0) return;
         if (pricePerUnit < 0) return;
 
-        const availableStock = selectedProduct.quantity || 0;
-        const existingItemIndex = cart.findIndex(item => item.product_id === selectedProduct.id);
+        const availableStock = product.quantity || 0;
+        const existingItemIndex = cart.findIndex(item => item.product_id === product.id);
         const currentInCart = existingItemIndex >= 0 ? cart[existingItemIndex].quantity : 0;
         
         if (currentInCart + amountToAdd > availableStock) {
-            alert(`Cannot add ${amountToAdd} items. Only ${availableStock - currentInCart} more available in stock.`);
+            toast.error(`Cannot add ${amountToAdd} items. Only ${availableStock - currentInCart} more available in stock.`);
             return;
         }
         
@@ -86,18 +89,30 @@ export default function NewSaleModal({ isOpen, onClose }) {
             setCart(newCart);
         } else {
             setCart([...cart, {
-                product_id: selectedProduct.id,
-                name: selectedProduct.name,
+                product_id: product.id,
+                name: product.name,
                 price: pricePerUnit,
-                cost_price: selectedProduct.cost_price || 0,
+                cost_price: product.cost_price || 0,
                 quantity: amountToAdd
             }]);
         }
-        
+    };
+
+    const addToCart = () => {
+        addItemToCart(selectedProduct, qty, unitPrice);
         // Reset inputs
         setSelectedProductId("");
         setQty(1);
         setUnitPrice("");
+    };
+
+    const handleScanResult = ({ sku, product }) => {
+        if (product) {
+            addItemToCart(product, 1, product.price || 0);
+            toast.success(`Added ${product.name} to cart`);
+        } else {
+            toast.error(`Product not found for SKU: ${sku}`);
+        }
     };
 
     const removeFromCart = (index) => {
@@ -226,9 +241,12 @@ export default function NewSaleModal({ isOpen, onClose }) {
                                     placeholder="Price"
                                 />
                             </div>
-                            <div className="sm:col-span-2">
-                                <Button onClick={addToCart} disabled={!selectedProductId} className="w-full bg-indigo-600">
+                            <div className="sm:col-span-2 flex gap-2">
+                                <Button onClick={addToCart} disabled={!selectedProductId} className="flex-1 bg-indigo-600">
                                     <Plus className="w-4 h-4" />
+                                </Button>
+                                <Button onClick={() => setIsScanOpen(true)} variant="outline" className="flex-1" title="Scan Barcode">
+                                    <ScanBarcode className="w-4 h-4" />
                                 </Button>
                             </div>
                         </div>
@@ -355,6 +373,11 @@ export default function NewSaleModal({ isOpen, onClose }) {
                         {isSubmitting ? "Processing..." : "Complete Sale"}
                     </Button>
                 </DialogFooter>
+                <ScanLookupDialog 
+                    isOpen={isScanOpen} 
+                    onClose={() => setIsScanOpen(false)} 
+                    onScan={handleScanResult} 
+                />
             </DialogContent>
         </Dialog>
     );
