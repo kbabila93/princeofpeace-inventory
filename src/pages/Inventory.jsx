@@ -119,9 +119,6 @@ export default function Inventory() {
 
   const handlePrintLabel = (product) => {
     const sku = product.sku || "NO SKU";
-    // Using bwip-js API for barcode generation
-    const barcodeUrl = `https://bwipjs-api.metafloor.org/?bcid=code128&text=${encodeURIComponent(sku)}&scale=3&height=10&incltext=true`;
-
     const printWindow = window.open('', '_blank', 'width=500,height=400');
     
     if (!printWindow) {
@@ -129,11 +126,16 @@ export default function Inventory() {
       return;
     }
 
+    // Escape special chars for HTML and JS
+    const safeName = product.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const safeSku = sku.replace(/"/g, '\\"');
+
     const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Label - ${product.name}</title>
+          <title>Label - ${safeName}</title>
+          <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
           <style>
             body {
               font-family: Arial, sans-serif;
@@ -154,27 +156,33 @@ export default function Inventory() {
               body { display: block; height: auto; }
               .label-container { border: none; padding: 0; width: 100%; page-break-inside: avoid; }
             }
-            img { max-width: 100%; height: auto; display: block; margin: 10px auto; }
+            #barcode { max-width: 100%; height: auto; display: block; margin: 10px auto; }
             .product-name { font-size: 14px; margin-bottom: 5px; font-weight: 500; }
             .price { font-size: 16px; font-weight: bold; margin-top: 5px; }
           </style>
         </head>
         <body>
           <div class="label-container">
-            <div class="product-name">${product.name}</div>
-            <img src="${barcodeUrl}" alt="${sku}" />
+            <div class="product-name">${safeName}</div>
+            <svg id="barcode"></svg>
             <div class="price">${product.currency || '$'} ${Number(product.price).toFixed(2)}</div>
           </div>
           <script>
-            const img = document.querySelector('img');
-            img.onload = function() {
+            try {
+              JsBarcode("#barcode", "${safeSku}", {
+                format: "CODE128",
+                width: 2,
+                height: 50,
+                displayValue: true,
+                margin: 0
+              });
+              
               setTimeout(() => {
                 window.print();
-              }, 300);
-            };
-            img.onerror = function() {
-              document.body.innerHTML = '<p style="color:red; text-align:center;">Failed to load barcode. Please check connection.</p>';
-            };
+              }, 500);
+            } catch (e) {
+              document.body.innerHTML = '<p style="color:red; text-align:center;">Failed to generate barcode: ' + e.message + '</p>';
+            }
           </script>
         </body>
       </html>
