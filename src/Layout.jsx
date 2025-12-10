@@ -19,6 +19,7 @@ import {
   } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
+import { Toaster } from "sonner";
 import { base44 } from "@/api/base44Client";
 
 export default function Layout({ children, currentPageName }) {
@@ -171,6 +172,7 @@ export default function Layout({ children, currentPageName }) {
       </div>
       
       <TeamChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <Toaster />
     </div>
   );
 }
