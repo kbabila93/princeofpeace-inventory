@@ -10,11 +10,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function StockAdjustmentDialog({ isOpen, onClose, product, type }) {
+export default function StockAdjustmentDialog({ isOpen, onClose, product, type, user }) {
   const [quantity, setQuantity] = useState("");
   const [reason, setReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+  const [authorizedBy, setAuthorizedBy] = useState("");
+  const [date, setDate] = useState("");
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setAuthorizedBy(user?.full_name || "");
+      // Set default date to now in local format for datetime-local input
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      setDate(now.toISOString().slice(0, 16));
+    }
+  }, [isOpen, user]);
 
   const isStockIn = type === 'in';
   
@@ -27,7 +39,8 @@ export default function StockAdjustmentDialog({ isOpen, onClose, product, type }
         type: type,
         quantity: Number(data.quantity),
         reason: data.reason === 'other' ? data.customReason : data.reason,
-        date: new Date().toISOString()
+        authorized_by: data.authorizedBy,
+        date: data.date ? new Date(data.date).toISOString() : new Date().toISOString()
       });
 
       // 2. Update product quantity
@@ -51,6 +64,7 @@ export default function StockAdjustmentDialog({ isOpen, onClose, product, type }
       setQuantity("");
       setReason("");
       setCustomReason("");
+      setAuthorizedBy("");
     },
     onError: (error) => {
       toast.error(error.message || "Failed to update stock");
@@ -59,7 +73,7 @@ export default function StockAdjustmentDialog({ isOpen, onClose, product, type }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    adjustStockMutation.mutate({ quantity, reason, customReason });
+    adjustStockMutation.mutate({ quantity, reason, customReason, authorizedBy, date });
   };
 
   if (!product) return null;
@@ -130,6 +144,29 @@ export default function StockAdjustmentDialog({ isOpen, onClose, product, type }
               />
             </div>
           )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="authorizedBy">Authorized By (Signature)</Label>
+              <Input
+                id="authorizedBy"
+                value={authorizedBy}
+                onChange={(e) => setAuthorizedBy(e.target.value)}
+                placeholder="Name / Signature"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="date">Date & Time</Label>
+              <Input
+                id="date"
+                type="datetime-local"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
+            </div>
+          </div>
 
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

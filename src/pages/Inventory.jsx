@@ -541,6 +541,7 @@ export default function Inventory() {
         onClose={() => setStockAdjustment({ ...stockAdjustment, isOpen: false })}
         product={stockAdjustment.product}
         type={stockAdjustment.type}
+        user={user}
       />
 
       <ShareProductDialog 

@@ -102,6 +102,7 @@ export default function Transactions() {
               <TableHead>Product</TableHead>
               <TableHead>Quantity</TableHead>
               <TableHead>Reason</TableHead>
+              <TableHead>Authorized By</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -143,6 +144,9 @@ export default function Transactions() {
                   </TableCell>
                   <TableCell className="text-gray-600 capitalize">
                     {tx.reason}
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-500">
+                    {tx.authorized_by || '-'}
                   </TableCell>
                 </TableRow>
               ))
