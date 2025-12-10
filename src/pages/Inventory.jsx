@@ -132,20 +132,20 @@ export default function Inventory() {
     doc.text(product.name.substring(0, 25), 25, 5, { align: "center" });
 
     try {
-      const img = await new Promise((resolve, reject) => {
-        const image = new Image();
-        image.crossOrigin = "Anonymous";
-        image.onload = () => resolve(image);
-        image.onerror = reject;
-        image.src = barcodeUrl;
+      const response = await fetch(barcodeUrl);
+      const blob = await response.blob();
+      const base64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
       });
 
-      // Calculate dimensions to fit in 40mm width approx
+      const imgProps = doc.getImageProperties(base64);
       const imgWidth = 35; 
-      const imgHeight = (img.height * imgWidth) / img.width;
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
       const x = (50 - imgWidth) / 2;
       
-      doc.addImage(img, 'PNG', x, 7, imgWidth, imgHeight);
+      doc.addImage(base64, 'PNG', x, 7, imgWidth, imgHeight);
     } catch (error) {
       console.error("Barcode load failed", error);
       doc.setFontSize(8);
