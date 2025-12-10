@@ -155,6 +155,7 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+        </motion.div>
 
         {/* Recent Activity */}
         <motion.div variants={itemVariants}>
