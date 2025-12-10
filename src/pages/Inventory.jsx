@@ -133,6 +133,48 @@ export default function Inventory() {
     doc.save(`${product.sku || 'product'}-label.pdf`);
   };
 
+  const handlePrintReport = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(20);
+    doc.text("Inventory Report", 14, 22);
+    
+    doc.setFontSize(10);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 30);
+    
+    // Headers
+    let yPos = 40;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Product", 14, yPos);
+    doc.text("SKU", 80, yPos);
+    doc.text("Category", 110, yPos);
+    doc.text("Stock", 140, yPos);
+    doc.text("Price", 170, yPos);
+    
+    doc.line(14, yPos + 2, 196, yPos + 2);
+    
+    yPos += 8;
+    doc.setFont("helvetica", "normal");
+    
+    filteredProducts.forEach((product) => {
+        if (yPos > 280) {
+            doc.addPage();
+            yPos = 20;
+        }
+        
+        doc.text(product.name.substring(0, 30), 14, yPos);
+        doc.text(product.sku || "-", 80, yPos);
+        doc.text(product.category || "-", 110, yPos);
+        doc.text(String(product.quantity), 140, yPos);
+        doc.text(`${product.currency || '$'} ${Number(product.price).toFixed(2)}`, 170, yPos);
+        
+        yPos += 7;
+    });
+    
+    doc.save("inventory-report.pdf");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -185,6 +227,10 @@ export default function Inventory() {
             </SelectContent>
           </Select>
         </div>
+        <Button onClick={handlePrintReport} variant="outline" className="mr-0">
+          <Printer className="w-4 h-4 mr-2" />
+          Print List
+        </Button>
         <Button onClick={handleCreate} className="bg-indigo-600 hover:bg-indigo-700">
           <Plus className="w-4 h-4 mr-2" />
           Add Product

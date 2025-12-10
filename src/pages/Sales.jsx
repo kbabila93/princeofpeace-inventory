@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, DollarSign, Calendar, History, Trash2, Loader2 } from 'lucide-react';
+import { Plus, DollarSign, Calendar, History, Trash2, Loader2, Printer } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from 'date-fns';
+import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 import NewSaleModal from '@/components/sales/NewSaleModal.jsx';
 import SalesList from '@/components/sales/SalesList.jsx';
@@ -58,6 +59,49 @@ export default function SalesPage() {
         }
     };
 
+    const handlePrintReport = () => {
+        const doc = new jsPDF();
+        
+        doc.setFontSize(20);
+        doc.text("Sales Report", 14, 22);
+        
+        doc.setFontSize(10);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 30);
+        
+        // Headers
+        let yPos = 40;
+        doc.setFontSize(12);
+        doc.text("Date", 14, yPos);
+        doc.text("Items", 60, yPos);
+        doc.text("Method", 120, yPos);
+        doc.text("Amount", 160, yPos);
+        
+        doc.line(14, yPos + 2, 196, yPos + 2);
+        
+        yPos += 10;
+        doc.setFontSize(10);
+        
+        sales.forEach((sale) => {
+            if (yPos > 280) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            const dateStr = format(new Date(sale.date), 'MMM d, yyyy');
+            const itemsStr = (sale.items_summary || "").substring(0, 30);
+            const amountStr = `${sale.currency || '$'} ${(sale.total_amount || 0).toFixed(2)}`;
+            
+            doc.text(dateStr, 14, yPos);
+            doc.text(itemsStr, 60, yPos);
+            doc.text(sale.payment_method || '-', 120, yPos);
+            doc.text(amountStr, 160, yPos);
+            
+            yPos += 8;
+        });
+        
+        doc.save("sales-report.pdf");
+    };
+
     // Calculate daily stats
     const todayStr = new Date().toDateString();
     const salesToday = sales.filter(s => new Date(s.date).toDateString() === todayStr);
@@ -72,6 +116,14 @@ export default function SalesPage() {
                     <p className="text-gray-500">Record and track your daily sales.</p>
                 </div>
                 <div className="flex gap-2">
+                    <Button 
+                        variant="outline"
+                        onClick={handlePrintReport}
+                        disabled={sales.length === 0}
+                    >
+                        <Printer className="w-4 h-4 mr-2" />
+                        Print Report
+                    </Button>
                     {canDelete && (
                         <Button 
                             variant="destructive" 
