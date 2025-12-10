@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
 import NotificationsMenu from '@/components/notifications/NotificationsMenu';
 import UserPresence from '@/components/UserPresence';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { Toaster } from "sonner";
 import { base44 } from "@/api/base44Client";
 
@@ -177,6 +178,7 @@ export default function Layout({ children, currentPageName }) {
       
       <TeamChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       <UserPresence />
+      <PWAInstallPrompt />
       <Toaster />
     </div>
   );
