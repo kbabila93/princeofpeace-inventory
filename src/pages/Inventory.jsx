@@ -48,7 +48,7 @@ import StockAdjustmentDialog from '@/components/inventory/StockAdjustmentDialog'
 import ShareProductDialog from '@/components/inventory/ShareProductDialog';
 import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
 import PrinterSettingsDialog from '@/components/inventory/PrinterSettingsDialog';
-import { useBarcodeScanner } from '@/components/hooks/useBarcodeScanner';
+import { useBarcodeScanner } from '../components/hooks/useBarcodeScanner';
 import { toast } from 'sonner';
 import { ScanBarcode } from 'lucide-react';
 
