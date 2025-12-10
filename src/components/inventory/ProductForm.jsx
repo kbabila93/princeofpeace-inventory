@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, Upload, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
 
 const generateSKU = () => {
@@ -53,6 +53,30 @@ export default function ProductForm({ isOpen, onClose, product, initialSku }) {
   }, [isOpen, product, initialSku]);
 
   const isEditing = !!product;
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const response = await base44.integrations.Core.UploadFile({ file: file });
+      if (response && response.file_url) {
+        setFormData(prev => ({ ...prev, image_url: response.file_url }));
+        toast.success("Image uploaded successfully");
+      }
+    } catch (error) {
+      console.error("Upload failed", error);
+      toast.error("Failed to upload image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    setFormData(prev => ({ ...prev, image_url: "" }));
+  };
 
   const mutation = useMutation({
     mutationFn: (data) => {
@@ -252,13 +276,64 @@ export default function ProductForm({ isOpen, onClose, product, initialSku }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image">Image URL</Label>
-            <Input
-              id="image"
-              value={formData.image_url}
-              onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-              placeholder="https://..."
-            />
+            <Label>Product Image</Label>
+            <div className="flex items-start gap-4">
+              {formData.image_url ? (
+                <div className="relative w-24 h-24 border rounded-lg overflow-hidden group">
+                  <img 
+                    src={formData.image_url} 
+                    alt="Product preview" 
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-24 h-24 border-2 border-dashed rounded-lg flex items-center justify-center text-gray-400 bg-gray-50">
+                  <ImageIcon className="w-8 h-8 opacity-50" />
+                </div>
+              )}
+              
+              <div className="flex-1 space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    id="image_upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                    disabled={isUploading}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    disabled={isUploading}
+                    onClick={() => document.getElementById('image_upload').click()}
+                    className="w-full sm:w-auto"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4 mr-2" />
+                    )}
+                    {isUploading ? "Uploading..." : "Upload Image"}
+                  </Button>
+                </div>
+                <div className="text-xs text-gray-500">
+                  Or enter URL manually:
+                </div>
+                <Input
+                  value={formData.image_url}
+                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
