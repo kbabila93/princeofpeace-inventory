@@ -12,7 +12,12 @@ import {
   Share2,
   Copy,
   Sparkles,
-  Play
+  Play,
+  Save,
+  History,
+  Trash2,
+  Download,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,9 +29,11 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 export default function AdvertGenerator() {
+  const queryClient = base44.useQueryClient ? base44.useQueryClient() : useQueryClient(); // fallback if sdk not updated
   const [selectedProductId, setSelectedProductId] = useState("");
   const [platform, setPlatform] = useState("instagram");
   const [tone, setTone] = useState("exciting");
+  const [activeTab, setActiveTab] = useState("create");
   
   const [generatedContent, setGeneratedContent] = useState(null);
   
@@ -35,7 +42,41 @@ export default function AdvertGenerator() {
     queryFn: () => base44.entities.Product.list(),
   });
 
+  const { data: adverts = [] } = useQuery({
+    queryKey: ['adverts'],
+    queryFn: () => base44.entities.Advert.list('-created_date'),
+  });
+
   const selectedProduct = products.find(p => p.id === selectedProductId);
+
+  const saveAdvertMutation = useMutation({
+    mutationFn: async () => {
+      if (!generatedContent) return;
+      await base44.entities.Advert.create({
+        title: `${generatedContent.productName} - ${platform}`,
+        content: generatedContent.text,
+        media_url: generatedContent.imageUrl,
+        media_type: "image",
+        platform: platform,
+        tone: tone,
+        product_name: generatedContent.productName
+      });
+    },
+    onSuccess: () => {
+      toast.success("Advert saved to history");
+      queryClient.invalidateQueries({ queryKey: ['adverts'] });
+      setActiveTab("history");
+    },
+    onError: (e) => toast.error("Failed to save: " + e.message)
+  });
+
+  const deleteAdvertMutation = useMutation({
+    mutationFn: (id) => base44.entities.Advert.delete(id),
+    onSuccess: () => {
+      toast.success("Advert deleted");
+      queryClient.invalidateQueries({ queryKey: ['adverts'] });
+    }
+  });
 
   const generateAdMutation = useMutation({
     mutationFn: async () => {
@@ -81,6 +122,10 @@ export default function AdvertGenerator() {
     }
   };
 
+  const useQueryClient = () => {
+    try { return base44.useQueryClient(); } catch (e) { return  new import("@tanstack/react-query").QueryClient() }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
@@ -91,7 +136,18 @@ export default function AdvertGenerator() {
         <p className="text-gray-500">Create AI-powered social media adverts for your products in seconds.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="create" className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4" /> Create New
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <History className="w-4 h-4" /> Saved Adverts
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="create" className="mt-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Controls */}
         <Card className="h-fit">
           <CardHeader>
@@ -179,9 +235,15 @@ export default function AdvertGenerator() {
                     <Video className="w-4 h-4" /> Video Story
                   </TabsTrigger>
                 </TabsList>
-                <Button variant="outline" size="sm" onClick={handleCopy}>
-                  <Copy className="w-4 h-4 mr-2" /> Copy Caption
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => saveAdvertMutation.mutate()} disabled={saveAdvertMutation.isPending}>
+                    {saveAdvertMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                    Save
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleCopy}>
+                    <Copy className="w-4 h-4 mr-2" /> Copy Caption
+                  </Button>
+                </div>
               </div>
 
               <TabsContent value="image" className="mt-0">
@@ -277,6 +339,53 @@ export default function AdvertGenerator() {
           )}
         </div>
       </div>
+      </TabsContent>
+
+      <TabsContent value="history" className="mt-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {adverts.length === 0 ? (
+            <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-xl border border-dashed">
+              <History className="w-12 h-12 mx-auto mb-4 opacity-20" />
+              <p>No saved adverts yet.</p>
+            </div>
+          ) : (
+            adverts.map((ad) => (
+              <Card key={ad.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="aspect-video relative group bg-gray-100">
+                  <img src={ad.media_url} alt={ad.title} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button size="icon" variant="secondary" onClick={() => window.open(ad.media_url, '_blank')}>
+                      <Download className="w-4 h-4" />
+                    </Button>
+                    <Button size="icon" variant="destructive" onClick={() => deleteAdvertMutation.mutate(ad.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold truncate pr-2">{ad.title}</h3>
+                    <span className="text-xs px-2 py-1 bg-gray-100 rounded-full capitalize text-gray-600">
+                      {ad.platform}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 line-clamp-3 mb-4">{ad.content}</p>
+                  <div className="flex justify-between items-center text-xs text-gray-400">
+                    <span>{new Date(ad.created_date).toLocaleDateString()}</span>
+                    <Button variant="ghost" size="sm" className="h-6" onClick={() => {
+                        navigator.clipboard.writeText(ad.content);
+                        toast.success("Content copied");
+                    }}>
+                      <Copy className="w-3 h-3 mr-1" /> Copy
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      </TabsContent>
+      </Tabs>
     </div>
   );
 }
