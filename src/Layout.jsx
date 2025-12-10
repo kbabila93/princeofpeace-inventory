@@ -17,7 +17,8 @@ import {
   Shield,
   Video,
   Megaphone,
-  Truck
+  Truck,
+  Radio
   } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
@@ -70,6 +71,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Transactions', href: 'Transactions', icon: History, permission: 'manage_transactions' },
     { name: 'Meetings', href: 'VideoConference', icon: Video, permission: 'view_dashboard' },
     { name: 'Marketing', href: 'AdvertGenerator', icon: Megaphone, permission: 'view_dashboard' },
+    { name: 'Announcements', href: 'Announcements', icon: Radio, permission: 'view_dashboard' },
     ];
 
   if (user?.role === 'admin') {
