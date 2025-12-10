@@ -121,6 +121,15 @@ export default function ProductForm({ isOpen, onClose, product }) {
                   <RefreshCw className="h-4 w-4" />
                 </Button>
               </div>
+              {formData.sku && (
+                <div className="mt-2 flex justify-center bg-white p-2 border rounded-md">
+                  <img 
+                    src={`https://bwipjs-api.metafloor.org/?bcid=code128&text=${encodeURIComponent(formData.sku)}&scale=2&height=10&incltext=true`} 
+                    alt="Barcode Preview" 
+                    className="max-h-12 object-contain"
+                  />
+                </div>
+              )}
             </div>
           </div>
 

@@ -117,23 +117,45 @@ export default function Inventory() {
     setStockAdjustment({ isOpen: true, product, type });
   };
 
-  const handlePrintLabel = (product) => {
+  const handlePrintLabel = async (product) => {
     const doc = new jsPDF({
       orientation: "landscape",
       unit: "mm",
       format: [50, 30]
     });
 
+    const sku = product.sku || "NO SKU";
+    // Using bwip-js API for barcode generation
+    const barcodeUrl = `https://bwipjs-api.metafloor.org/?bcid=code128&text=${encodeURIComponent(sku)}&scale=3&height=10&incltext=true`;
+
+    doc.setFontSize(9);
+    doc.text(product.name.substring(0, 25), 25, 5, { align: "center" });
+
+    try {
+      const img = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.crossOrigin = "Anonymous";
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = barcodeUrl;
+      });
+
+      // Calculate dimensions to fit in 40mm width approx
+      const imgWidth = 35; 
+      const imgHeight = (img.height * imgWidth) / img.width;
+      const x = (50 - imgWidth) / 2;
+      
+      doc.addImage(img, 'PNG', x, 7, imgWidth, imgHeight);
+    } catch (error) {
+      console.error("Barcode load failed", error);
+      doc.setFontSize(8);
+      doc.text(sku, 25, 15, { align: "center" });
+    }
+    
     doc.setFontSize(10);
-    doc.text(product.name.substring(0, 20), 25, 5, { align: "center" });
+    doc.text(`${product.currency || '$'} ${Number(product.price).toFixed(2)}`, 25, 27, { align: "center" });
     
-    doc.setFontSize(8);
-    doc.text(product.sku || "No SKU", 25, 12, { align: "center" });
-    
-    doc.setFontSize(12);
-    doc.text(`${product.currency || '$'} ${Number(product.price).toFixed(2)}`, 25, 20, { align: "center" });
-    
-    doc.save(`${product.sku || 'product'}-label.pdf`);
+    doc.save(`${sku}-label.pdf`);
   };
 
   const handleShare = (product) => {
