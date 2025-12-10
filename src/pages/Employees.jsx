@@ -38,7 +38,18 @@ export default function Employees() {
     queryFn: () => base44.entities.Employee.list(),
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const canDelete = user?.role === 'admin' || (user?.permissions || []).includes('delete_employees');
+
   const handleDelete = async (id) => {
+    if (!canDelete) {
+      toast.error("You don't have permission to remove employees");
+      return;
+    }
     if (confirm("Are you sure you want to remove this employee?")) {
       await base44.entities.Employee.delete(id);
       queryClient.invalidateQueries({ queryKey: ['employees'] });
@@ -124,12 +135,14 @@ export default function Employees() {
                       <DropdownMenuItem onClick={() => handleEdit(employee)}>
                         <Pencil className="w-4 h-4 mr-2" /> Edit Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="text-red-600 focus:text-red-600"
-                        onClick={() => handleDelete(employee.id)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" /> Remove
-                      </DropdownMenuItem>
+                      {canDelete && (
+                        <DropdownMenuItem 
+                          className="text-red-600 focus:text-red-600"
+                          onClick={() => handleDelete(employee.id)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" /> Remove
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
