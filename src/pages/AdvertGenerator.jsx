@@ -29,7 +29,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 export default function AdvertGenerator() {
-  const queryClient = base44.useQueryClient ? base44.useQueryClient() : useQueryClient(); // fallback if sdk not updated
+  const queryClient = useQueryClient();
   const [selectedProductId, setSelectedProductId] = useState("");
   const [platform, setPlatform] = useState("instagram");
   const [tone, setTone] = useState("exciting");
@@ -122,9 +122,7 @@ export default function AdvertGenerator() {
     }
   };
 
-  const useQueryClient = () => {
-    try { return base44.useQueryClient(); } catch (e) { return  new import("@tanstack/react-query").QueryClient() }
-  }
+
 
   return (
     <div className="space-y-6">
