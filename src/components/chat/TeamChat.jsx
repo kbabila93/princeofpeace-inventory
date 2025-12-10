@@ -1,12 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Send, X, MessageSquare, User } from 'lucide-react';
+import { Send, X, MessageSquare, User, Trash2, AlertCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function TeamChat({ isOpen, onClose }) {
     const [newMessage, setNewMessage] = useState("");
@@ -54,6 +66,20 @@ export default function TeamChat({ isOpen, onClose }) {
         }
     });
 
+    const clearChatMutation = useMutation({
+        mutationFn: async () => {
+            const allMessages = await base44.entities.Message.list(null, 1000);
+            await Promise.all(allMessages.map(msg => base44.entities.Message.delete(msg.id)));
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['messages'] });
+            toast.success("Chat history cleared");
+        },
+        onError: () => {
+            toast.error("Failed to clear chat");
+        }
+    });
+
     const handleSend = (e) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
@@ -70,9 +96,34 @@ export default function TeamChat({ isOpen, onClose }) {
                     <MessageSquare className="w-5 h-5" />
                     <h3 className="font-semibold">Team Chat</h3>
                 </div>
-                <button onClick={onClose} className="hover:bg-indigo-700 p-1 rounded transition-colors">
-                    <X className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                    {currentUser?.role === 'admin' && (
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <button className="hover:bg-indigo-700 p-1 rounded transition-colors" title="Clear Chat">
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Clear Chat History?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will permanently delete all messages in the chat. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => clearChatMutation.mutate()} className="bg-red-600 hover:bg-red-700">
+                                        Clear Chat
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    )}
+                    <button onClick={onClose} className="hover:bg-indigo-700 p-1 rounded transition-colors">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
             {/* Messages */}
