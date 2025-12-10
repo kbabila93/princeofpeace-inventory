@@ -135,11 +135,25 @@ export default function UsersPage() {
             <CardHeader className="bg-gray-50/50 pb-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                    <UserIcon className="w-5 h-5" />
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                      <UserIcon className="w-5 h-5" />
+                    </div>
+                    {user.last_seen && (new Date() - new Date(user.last_seen) < 5 * 60 * 1000) && (
+                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" title="Online"></span>
+                    )}
                   </div>
                   <div>
-                    <CardTitle className="text-base">{user.full_name || 'Unnamed User'}</CardTitle>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      {user.full_name || 'Unnamed User'}
+                      {user.last_seen && (new Date() - new Date(user.last_seen) < 5 * 60 * 1000) ? (
+                        <span className="text-xs font-normal text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">Online</span>
+                      ) : (
+                        <span className="text-xs font-normal text-gray-400">
+                          {user.last_seen ? `Last seen ${new Date(user.last_seen).toLocaleDateString()} ${new Date(user.last_seen).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : 'Offline'}
+                        </span>
+                      )}
+                    </CardTitle>
                     <CardDescription>{user.email}</CardDescription>
                   </div>
                 </div>
