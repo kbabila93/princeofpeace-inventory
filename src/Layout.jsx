@@ -14,8 +14,9 @@ import {
   Users,
   Bell,
   MessageSquare,
-  Shield
-} from 'lucide-react';
+  Shield,
+  Video
+  } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
 import { base44 } from "@/api/base44Client";
@@ -37,7 +38,8 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Inventory', href: 'Inventory', icon: Package, permission: 'manage_inventory' },
     { name: 'Employees', href: 'Employees', icon: Users, permission: 'manage_employees' },
     { name: 'Transactions', href: 'Transactions', icon: History, permission: 'manage_transactions' },
-  ];
+    { name: 'Meetings', href: 'VideoConference', icon: Video, permission: 'view_dashboard' }, // Available to everyone with dashboard access
+    ];
 
   if (user?.role === 'admin') {
     navigation.push({ name: 'Users', href: 'Users', icon: Shield, permission: 'manage_users' });
