@@ -36,6 +36,10 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
 
+    // Listen for open-chat events from notifications
+    const handleOpenChat = () => setIsChatOpen(true);
+    window.addEventListener('open-chat', handleOpenChat);
+
     // Add PWA meta tags for iOS and others
     const addMeta = (name, content) => {
       if (!document.querySelector(`meta[name="${name}"]`)) {
@@ -49,7 +53,11 @@ export default function Layout({ children, currentPageName }) {
     addMeta("apple-mobile-web-app-capable", "yes");
     addMeta("apple-mobile-web-app-status-bar-style", "black-translucent");
     addMeta("theme-color", "#4f46e5");
-  }, []);
+
+    return () => {
+      window.removeEventListener('open-chat', handleOpenChat);
+    };
+    }, []);
 
   const navigation = [
     { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard, permission: 'view_dashboard' },

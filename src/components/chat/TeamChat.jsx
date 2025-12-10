@@ -55,11 +55,25 @@ export default function TeamChat({ isOpen, onClose }) {
     }, [messages]);
 
     const sendMessageMutation = useMutation({
-        mutationFn: (text) => base44.entities.Message.create({
-            text,
-            sender_name: currentUser?.first_name || currentUser?.email?.split('@')[0] || "User",
-            channel: "general"
-        }),
+        mutationFn: async (text) => {
+            const senderName = currentUser?.first_name || currentUser?.email?.split('@')[0] || "User";
+            const msg = await base44.entities.Message.create({
+                text,
+                sender_name: senderName,
+                channel: "general"
+            });
+            
+            // Create notification for other users
+            await base44.entities.Notification.create({
+                title: `New message from ${senderName}`,
+                message: text.length > 50 ? text.substring(0, 50) + '...' : text,
+                type: 'info',
+                recipient_email: null, // Broadcast to all
+                link: '#chat' // Special link to open chat
+            });
+            
+            return msg;
+        },
         onSuccess: () => {
             setNewMessage("");
             queryClient.invalidateQueries({ queryKey: ['messages'] });

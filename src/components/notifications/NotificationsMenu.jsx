@@ -36,7 +36,8 @@ export default function NotificationsMenu() {
   });
 
   const myNotifications = notifications.filter(n => 
-    !n.recipient_email || (user && n.recipient_email === user.email)
+    (!n.recipient_email || (user && n.recipient_email === user.email)) &&
+    (user && n.created_by !== user.email) // Don't show my own notifications
   );
 
   const unreadCount = myNotifications.filter(n => !n.is_read).length;
@@ -63,8 +64,11 @@ export default function NotificationsMenu() {
     if (!notification.is_read) {
       markAsReadMutation.mutate(notification.id);
     }
-    if (notification.link) {
-      setIsOpen(false);
+    setIsOpen(false);
+    
+    if (notification.link === '#chat') {
+        window.dispatchEvent(new Event('open-chat'));
+    } else if (notification.link) {
       navigate(notification.link);
     }
   };
