@@ -93,15 +93,20 @@ export default function AdvertGenerator() {
 
       const textResponse = await base44.integrations.Core.InvokeLLM({ prompt });
       
-      // 2. Generate Image
-      const imagePrompt = `Professional product photography of ${selectedProduct.name}, ${selectedProduct.description}, 
-      advertising style, high quality, 4k, cinematic lighting, trendy, appealing for ${platform} social media.`;
-      
-      const imageResponse = await base44.integrations.Core.GenerateImage({ prompt: imagePrompt });
+      // 2. Get Image (Use product image if available, otherwise generate)
+      let imageUrl = selectedProduct.image_url;
+
+      if (!imageUrl) {
+        const imagePrompt = `Professional product photography of ${selectedProduct.name}, ${selectedProduct.description}, 
+        advertising style, high quality, 4k, cinematic lighting, trendy, appealing for ${platform} social media.`;
+        
+        const imageResponse = await base44.integrations.Core.GenerateImage({ prompt: imagePrompt });
+        imageUrl = imageResponse.url;
+      }
 
       return {
         text: textResponse,
-        imageUrl: imageResponse.url,
+        imageUrl: imageUrl,
         productName: selectedProduct.name,
         price: `${selectedProduct.currency} ${selectedProduct.price}`
       };
