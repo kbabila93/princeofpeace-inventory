@@ -10,7 +10,6 @@ import AdvertGenerator from './pages/AdvertGenerator';
 import Customers from './pages/Customers';
 import Suppliers from './pages/Suppliers';
 import Announcements from './pages/Announcements';
-import CallCenter from './pages/CallCenter';
 import __Layout from './Layout.jsx';
 
 
@@ -27,7 +26,6 @@ export const PAGES = {
     "Customers": Customers,
     "Suppliers": Suppliers,
     "Announcements": Announcements,
-    "CallCenter": CallCenter,
 }
 
 export const pagesConfig = {
