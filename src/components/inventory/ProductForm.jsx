@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, RefreshCw, Upload, Image as ImageIcon, X } from "lucide-react";
+import { Loader2, RefreshCw, Upload, Image as ImageIcon, X, Camera } from "lucide-react";
 import { toast } from "sonner";
+import CameraCaptureDialog from './CameraCaptureDialog';
 
 const generateSKU = () => {
   return "PRD-" + Math.floor(10000000 + Math.random() * 90000000).toString();
@@ -54,9 +55,9 @@ export default function ProductForm({ isOpen, onClose, product, initialSku }) {
 
   const isEditing = !!product;
   const [isUploading, setIsUploading] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleFileUpload = async (file) => {
     if (!file) return;
 
     setIsUploading(true);
@@ -72,6 +73,10 @@ export default function ProductForm({ isOpen, onClose, product, initialSku }) {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleImageUpload = (e) => {
+    handleFileUpload(e.target.files[0]);
   };
 
   const removeImage = () => {
@@ -314,14 +319,25 @@ export default function ProductForm({ isOpen, onClose, product, initialSku }) {
                     variant="outline" 
                     disabled={isUploading}
                     onClick={() => document.getElementById('image_upload').click()}
-                    className="w-full sm:w-auto"
+                    className="flex-1 sm:flex-none"
                   >
                     {isUploading ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
                       <Upload className="w-4 h-4 mr-2" />
                     )}
-                    {isUploading ? "Uploading..." : "Upload Image"}
+                    Upload
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    disabled={isUploading}
+                    onClick={() => setIsCameraOpen(true)}
+                    className="flex-1 sm:flex-none"
+                    title="Take Photo"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Camera
                   </Button>
                 </div>
                 <div className="text-xs text-gray-500">
@@ -355,6 +371,12 @@ export default function ProductForm({ isOpen, onClose, product, initialSku }) {
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <CameraCaptureDialog 
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onCapture={handleFileUpload}
+      />
     </Dialog>
   );
 }
