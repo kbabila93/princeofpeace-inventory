@@ -125,7 +125,7 @@ export default function Layout({ children, currentPageName }) {
             </button>
           </div>
 
-          <nav className="flex-1 px-4 py-6 space-y-1">
+          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
             {filteredNavigation.map((item) => {
               const isActive = currentPageName === item.name;
               return (
@@ -190,7 +190,17 @@ export default function Layout({ children, currentPageName }) {
             {currentPageName}
           </h1>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-gray-500 hover:text-indigo-600 hover:bg-indigo-50"
+              onClick={() => window.dispatchEvent(new Event('open-install-prompt'))}
+              title="Install App"
+            >
+              <Download className="w-5 h-5" />
+            </Button>
+
             <button 
               onClick={() => setIsChatOpen(!isChatOpen)}
               className={`p-2 relative transition-colors ${isChatOpen ? 'text-indigo-600 bg-indigo-50 rounded-md' : 'text-gray-400 hover:text-gray-600'}`}

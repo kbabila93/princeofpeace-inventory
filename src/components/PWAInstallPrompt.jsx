@@ -15,17 +15,22 @@ export default function PWAInstallPrompt() {
     setIsIOS(ios);
 
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isStandalone) return;
-
+    
     const handler = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setIsVisible(true);
+      if (!isStandalone) {
+        setIsVisible(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
     const openHandler = () => {
+        if (isStandalone) {
+            toast.info("App is already installed");
+            return;
+        }
         if (ios) {
             setShowIOSHelp(true);
         } else {
