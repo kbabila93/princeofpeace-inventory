@@ -53,6 +53,8 @@ export default function PWAInstallPrompt() {
     if (!deferredPrompt) {
       if (isIOS) {
         setShowIOSHelp(true);
+      } else {
+        toast.info("Installation not available. Please try from your browser menu or use Chrome/Edge.");
       }
       return;
     }
