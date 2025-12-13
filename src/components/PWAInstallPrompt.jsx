@@ -9,6 +9,7 @@ export default function PWAInstallPrompt() {
   const [isVisible, setIsVisible] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSHelp, setShowIOSHelp] = useState(false);
+  const [showGenericHelp, setShowGenericHelp] = useState(false);
 
   useEffect(() => {
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -54,7 +55,7 @@ export default function PWAInstallPrompt() {
       if (isIOS) {
         setShowIOSHelp(true);
       } else {
-        toast.info("Installation not available. Please try from your browser menu or use Chrome/Edge.");
+        setShowGenericHelp(true);
       }
       return;
     }
@@ -70,7 +71,7 @@ export default function PWAInstallPrompt() {
     sessionStorage.setItem('pwa_prompt_dismissed', 'true');
   };
 
-  if (!isVisible && !showIOSHelp) return null;
+  if (!isVisible && !showIOSHelp && !showGenericHelp) return null;
 
   return (
     <>
@@ -142,6 +143,40 @@ export default function PWAInstallPrompt() {
             </div>
           </div>
           <Button onClick={() => setShowIOSHelp(false)} className="w-full">
+            Got it
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showGenericHelp} onOpenChange={setShowGenericHelp}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Install App</DialogTitle>
+            <DialogDescription>
+              We couldn't launch the installer automatically. Here is how to do it manually:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <span className="font-bold text-lg text-gray-700">1</span>
+              </div>
+              <p className="text-sm">Tap the <span className="font-bold">Menu</span> button (three dots) in your browser.</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <Download className="w-5 h-5 text-indigo-600" />
+              </div>
+              <p className="text-sm">Select <span className="font-bold">Install App</span> or <span className="font-bold">Add to Home Screen</span>.</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <span className="font-bold text-lg text-green-600">✓</span>
+              </div>
+              <p className="text-sm">Follow the on-screen instructions to install.</p>
+            </div>
+          </div>
+          <Button onClick={() => setShowGenericHelp(false)} className="w-full">
             Got it
           </Button>
         </DialogContent>
