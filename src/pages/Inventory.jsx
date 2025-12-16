@@ -403,13 +403,13 @@ export default function Inventory() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-10 text-gray-500">
                   Loading inventory...
                 </TableCell>
               </TableRow>
             ) : filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-10 text-gray-500">
                   No products found.
                 </TableCell>
               </TableRow>
