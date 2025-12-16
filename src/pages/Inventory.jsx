@@ -396,6 +396,7 @@ export default function Inventory() {
               <TableHead>Price</TableHead>
               <TableHead>Stock Level</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Last Updated</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -459,8 +460,18 @@ export default function Inventory() {
                           In Stock
                         </Badge>
                       )}
-                    </TableCell>
-                    <TableCell className="text-right">
+                      </TableCell>
+                      <TableCell>
+                      <div className="flex flex-col text-xs">
+                        <span className="font-medium text-gray-700">
+                          {product.last_updated_by || product.created_by || "System"}
+                        </span>
+                        <span className="text-gray-400">
+                          {new Date(product.updated_date || product.created_date).toLocaleDateString()}
+                        </span>
+                      </div>
+                      </TableCell>
+                      <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button 
                           size="icon" 
@@ -529,6 +540,7 @@ export default function Inventory() {
         onClose={() => setIsProductFormOpen(false)} 
         product={editingProduct}
         initialSku={initialSku}
+        user={user}
       />
 
       <ScanLookupDialog

@@ -53,7 +53,8 @@ export default function StockAdjustmentDialog({ isOpen, onClose, product, type, 
       }
 
       await base44.entities.Product.update(product.id, {
-        quantity: newQuantity
+        quantity: newQuantity,
+        last_updated_by: user?.email || null
       });
     },
     onSuccess: () => {

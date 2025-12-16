@@ -15,7 +15,7 @@ const generateSKU = () => {
   return "PRD-" + Math.floor(10000000 + Math.random() * 90000000).toString();
 };
 
-export default function ProductForm({ isOpen, onClose, product, initialSku }) {
+export default function ProductForm({ isOpen, onClose, product, initialSku, user }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState(product || {
     name: "",
@@ -90,12 +90,14 @@ export default function ProductForm({ isOpen, onClose, product, initialSku }) {
         price: Number(data.price),
         cost_price: Number(data.cost_price),
         quantity: Number(data.quantity),
-        low_stock_threshold: Number(data.low_stock_threshold)
+        low_stock_threshold: Number(data.low_stock_threshold),
+        last_updated_by: user?.email || null
       };
       
       if (isEditing) {
         return base44.entities.Product.update(product.id, payload);
       } else {
+        // created_by is automatic, but we can also set last_updated_by for consistency
         return base44.entities.Product.create(payload);
       }
     },

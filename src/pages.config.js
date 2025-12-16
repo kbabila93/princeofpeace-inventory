@@ -1,31 +1,33 @@
+import AdvertGenerator from './pages/AdvertGenerator';
+import Announcements from './pages/Announcements';
+import Customers from './pages/Customers';
 import Dashboard from './pages/Dashboard';
-import Inventory from './pages/Inventory';
-import Transactions from './pages/Transactions';
-import Sales from './pages/Sales';
-import Expenditures from './pages/Expenditures';
 import Employees from './pages/Employees';
+import Expenditures from './pages/Expenditures';
+import Home from './pages/Home';
+import Inventory from './pages/Inventory';
+import Sales from './pages/Sales';
+import Suppliers from './pages/Suppliers';
+import Transactions from './pages/Transactions';
 import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
-import AdvertGenerator from './pages/AdvertGenerator';
-import Customers from './pages/Customers';
-import Suppliers from './pages/Suppliers';
-import Announcements from './pages/Announcements';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdvertGenerator": AdvertGenerator,
+    "Announcements": Announcements,
+    "Customers": Customers,
     "Dashboard": Dashboard,
-    "Inventory": Inventory,
-    "Transactions": Transactions,
-    "Sales": Sales,
-    "Expenditures": Expenditures,
     "Employees": Employees,
+    "Expenditures": Expenditures,
+    "Home": Home,
+    "Inventory": Inventory,
+    "Sales": Sales,
+    "Suppliers": Suppliers,
+    "Transactions": Transactions,
     "Users": Users,
     "VideoConference": VideoConference,
-    "AdvertGenerator": AdvertGenerator,
-    "Customers": Customers,
-    "Suppliers": Suppliers,
-    "Announcements": Announcements,
 }
 
 export const pagesConfig = {
