@@ -110,6 +110,7 @@ export default function SalesList({ sales, isLoading }) {
             <TableHeader>
                 <TableRow>
                     <TableHead>Date</TableHead>
+                    <TableHead>Sales Rep</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Items</TableHead>
                     <TableHead>Payment</TableHead>
@@ -123,6 +124,11 @@ export default function SalesList({ sales, isLoading }) {
                     <TableRow key={sale.id}>
                         <TableCell className="font-medium text-gray-900">
                             {format(new Date(sale.date), 'MMM d, yyyy h:mm a')}
+                        </TableCell>
+                        <TableCell>
+                            <span className="text-sm font-medium text-indigo-600">
+                                {sale.sales_rep_name || sale.created_by || "System"}
+                            </span>
                         </TableCell>
                         <TableCell>
                             <div className="flex items-center gap-1 text-gray-700">

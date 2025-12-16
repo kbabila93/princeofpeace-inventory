@@ -30,6 +30,12 @@ export default function NewSaleModal({ isOpen, onClose }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isScanOpen, setIsScanOpen] = useState(false);
 
+    // Fetch current user
+    const { data: user } = useQuery({
+        queryKey: ['me'],
+        queryFn: () => base44.auth.me(),
+    });
+
     // Fetch products
     const { data: products = [] } = useQuery({
         queryKey: ['products'],
@@ -151,6 +157,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
                 payment_method: paymentMethod,
                 customer_id: selectedCustomerId === "walk-in" ? null : selectedCustomerId,
                 customer_name: selectedCustomerId === "walk-in" ? "Walk-in Customer" : selectedCustomer?.name,
+                sales_rep_name: user?.full_name || user?.email || "Unknown",
                 items_summary: itemsSummary,
                 items_json: JSON.stringify(cart)
             };
