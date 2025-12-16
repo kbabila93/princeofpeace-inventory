@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function ExpenditureForm({ isOpen, onClose, expenditure }) {
+export default function ExpenditureForm({ isOpen, onClose, expenditure, user }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     description: "",
@@ -54,7 +54,8 @@ export default function ExpenditureForm({ isOpen, onClose, expenditure }) {
       const payload = {
         ...data,
         amount: Number(data.amount),
-        date: new Date(data.date).toISOString()
+        date: new Date(data.date).toISOString(),
+        last_updated_by: user?.email || null
       };
       
       if (isEditing) {

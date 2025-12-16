@@ -123,6 +123,7 @@ export default function Expenditures() {
               <TableHead>Description</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Payment</TableHead>
+              <TableHead>Last Updated</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead className="text-right w-[80px]"></TableHead>
             </TableRow>
@@ -130,13 +131,13 @@ export default function Expenditures() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-10 text-gray-500">
                   Loading expenditures...
                 </TableCell>
               </TableRow>
             ) : filteredExpenditures.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-10 text-gray-500">
                   No expenditures found.
                 </TableCell>
               </TableRow>
@@ -153,6 +154,16 @@ export default function Expenditures() {
                     </Badge>
                   </TableCell>
                   <TableCell className="capitalize text-gray-500">{item.payment_method}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col text-xs">
+                      <span className="font-medium text-gray-700">
+                        {item.last_updated_by || item.created_by || "System"}
+                      </span>
+                      <span className="text-gray-400">
+                        {new Date(item.updated_date || item.created_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-right font-bold text-gray-900">
                     {item.currency || '$'} {Number(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </TableCell>
@@ -186,7 +197,8 @@ export default function Expenditures() {
       <ExpenditureForm 
         isOpen={isFormOpen} 
         onClose={() => setIsFormOpen(false)} 
-        expenditure={editingItem} 
+        expenditure={editingItem}
+        user={user}
       />
     </div>
   );
