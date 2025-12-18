@@ -14,7 +14,9 @@ import {
   Printer,
   Share2,
   Settings,
-  QrCode
+  QrCode,
+  ArrowDownAZ,
+  ArrowUpZA
   } from 'lucide-react';
   import { jsPDF } from "jspdf";
   import { Button } from "@/components/ui/button";
@@ -58,6 +60,7 @@ export default function Inventory() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sectionFilter, setSectionFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("asc");
   
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -128,6 +131,12 @@ export default function Inventory() {
     }
 
     return matchesSearch && matchesCategory && matchesSection && matchesStatus;
+  }).sort((a, b) => {
+    if (sortOrder === 'asc') {
+      return a.name.localeCompare(b.name);
+    } else {
+      return b.name.localeCompare(a.name);
+    }
   });
 
   // Get unique sections for filter
@@ -368,6 +377,14 @@ export default function Inventory() {
           </Select>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+            title={sortOrder === 'asc' ? "Sort Z-A" : "Sort A-Z"}
+          >
+            {sortOrder === 'asc' ? <ArrowDownAZ className="w-4 h-4" /> : <ArrowUpZA className="w-4 h-4" />}
+          </Button>
           <Button onClick={() => setScanDialog(true)} variant="outline" title="Manual Scan / Lookup">
             <ScanBarcode className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">Scan</span>
