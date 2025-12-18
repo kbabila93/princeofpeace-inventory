@@ -56,6 +56,7 @@ export default function ProductForm({ isOpen, onClose, product, initialSku, user
   const isEditing = !!product;
   const [isUploading, setIsUploading] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const fileInputRef = React.useRef(null);
 
   const handleFileUpload = async (file) => {
     if (!file) return;
@@ -308,8 +309,8 @@ export default function ProductForm({ isOpen, onClose, product, initialSku, user
               
               <div className="flex-1 space-y-2">
                 <div className="flex gap-2">
-                  <Input
-                    id="image_upload"
+                  <input
+                    ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     className="hidden"
@@ -320,7 +321,7 @@ export default function ProductForm({ isOpen, onClose, product, initialSku, user
                     type="button" 
                     variant="outline" 
                     disabled={isUploading}
-                    onClick={() => document.getElementById('image_upload').click()}
+                    onClick={() => fileInputRef.current?.click()}
                     className="flex-1 sm:flex-none"
                   >
                     {isUploading ? (
