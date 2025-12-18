@@ -51,9 +51,11 @@ import BatchManagerDialog from '@/components/inventory/BatchManagerDialog';
 import ShareProductDialog from '@/components/inventory/ShareProductDialog';
 import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
 import PrinterSettingsDialog from '@/components/inventory/PrinterSettingsDialog';
+import BulkEditDialog from '@/components/inventory/BulkEditDialog';
 import { useBarcodeScanner } from '../components/hooks/useBarcodeScanner';
 import { toast } from 'sonner';
-import { ScanBarcode } from 'lucide-react';
+import { ScanBarcode, CheckSquare, XSquare, Layers } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Inventory() {
   const [search, setSearch] = useState("");
@@ -72,6 +74,9 @@ export default function Inventory() {
 
   const [stockAdjustment, setStockAdjustment] = useState({ isOpen: false, product: null, type: 'in' });
   const [batchDialog, setBatchDialog] = useState({ isOpen: false, product: null });
+  
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -145,6 +150,20 @@ export default function Inventory() {
   const handleEdit = (product) => {
     setEditingProduct(product);
     setIsProductFormOpen(true);
+  };
+
+  const handleToggleSelect = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedIds(filteredProducts.map(p => p.id));
+    } else {
+      setSelectedIds([]);
+    }
   };
 
   const handleCreate = () => {
@@ -403,10 +422,35 @@ export default function Inventory() {
         </Button>
       </div>
 
+      {selectedIds.length > 0 && (
+        <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-lg flex items-center justify-between animate-in slide-in-from-top-2">
+          <div className="flex items-center gap-3">
+            <CheckSquare className="w-5 h-5 text-indigo-600" />
+            <span className="font-medium text-indigo-900">{selectedIds.length} products selected</span>
+          </div>
+          <div className="flex items-center gap-2">
+             <Button variant="outline" size="sm" onClick={() => setSelectedIds([])} className="bg-white hover:bg-indigo-50 text-indigo-700 border-indigo-200">
+              <XSquare className="w-4 h-4 mr-2" />
+              Cancel Selection
+            </Button>
+            <Button size="sm" onClick={() => setBulkEditOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
+              <Layers className="w-4 h-4 mr-2" />
+              Bulk Edit
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox 
+                  checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Section</TableHead>
@@ -420,13 +464,13 @@ export default function Inventory() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-10 text-gray-500">
+                <TableCell colSpan={9} className="text-center py-10 text-gray-500">
                   Loading inventory...
                 </TableCell>
               </TableRow>
             ) : filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-10 text-gray-500">
+                <TableCell colSpan={9} className="text-center py-10 text-gray-500">
                   No products found.
                 </TableCell>
               </TableRow>
@@ -436,7 +480,13 @@ export default function Inventory() {
                 const isOutOfStock = (product.quantity || 0) === 0;
 
                 return (
-                  <TableRow key={product.id}>
+                  <TableRow key={product.id} className={selectedIds.includes(product.id) ? "bg-indigo-50/50" : ""}>
+                    <TableCell>
+                      <Checkbox 
+                        checked={selectedIds.includes(product.id)}
+                        onCheckedChange={() => handleToggleSelect(product.id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden">
@@ -591,6 +641,13 @@ export default function Inventory() {
         isOpen={batchDialog.isOpen} 
         onClose={() => setBatchDialog({ ...batchDialog, isOpen: false })} 
         product={batchDialog.product} 
+      />
+
+      <BulkEditDialog
+        isOpen={bulkEditOpen}
+        onClose={() => setBulkEditOpen(false)}
+        selectedIds={selectedIds}
+        onComplete={() => setSelectedIds([])}
       />
       </div>
       );
