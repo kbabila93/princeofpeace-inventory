@@ -1,3 +1,4 @@
+import AdvertGenerator from './pages/AdvertGenerator';
 import Announcements from './pages/Announcements';
 import Customers from './pages/Customers';
 import Dashboard from './pages/Dashboard';
@@ -10,11 +11,11 @@ import Suppliers from './pages/Suppliers';
 import Transactions from './pages/Transactions';
 import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
-import AdvertGenerator from './pages/AdvertGenerator';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdvertGenerator": AdvertGenerator,
     "Announcements": Announcements,
     "Customers": Customers,
     "Dashboard": Dashboard,
@@ -27,7 +28,6 @@ export const PAGES = {
     "Transactions": Transactions,
     "Users": Users,
     "VideoConference": VideoConference,
-    "AdvertGenerator": AdvertGenerator,
 }
 
 export const pagesConfig = {
