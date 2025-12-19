@@ -58,6 +58,7 @@ import { useBarcodeScanner } from '../components/hooks/useBarcodeScanner';
 import { toast } from 'sonner';
 import { ScanBarcode, CheckSquare, XSquare, Layers } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Inventory() {
   const [search, setSearch] = useState("");
@@ -150,6 +151,29 @@ export default function Inventory() {
 
   // Get unique sections for filter
   const uniqueSections = [...new Set(products.map(p => p.section || "Main"))].sort();
+
+  // Calculate totals
+  const totalStock = filteredProducts.reduce((sum, p) => sum + (p.quantity || 0), 0);
+  
+  const totalCostByCurrency = filteredProducts.reduce((acc, p) => {
+    const curr = p.currency || 'USD';
+    const val = (p.quantity || 0) * (p.cost_price || 0);
+    acc[curr] = (acc[curr] || 0) + val;
+    return acc;
+  }, {});
+
+  const totalRetailByCurrency = filteredProducts.reduce((acc, p) => {
+    const curr = p.currency || 'USD';
+    const val = (p.quantity || 0) * (p.price || 0);
+    acc[curr] = (acc[curr] || 0) + val;
+    return acc;
+  }, {});
+
+  const formatCurrencyTotals = (totals) => {
+    const entries = Object.entries(totals);
+    if (entries.length === 0) return "0.00";
+    return entries.map(([curr, val]) => `${curr} ${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`).join(' + ');
+  };
 
   const handleEdit = (product) => {
     setEditingProduct(product);
@@ -348,8 +372,31 @@ export default function Inventory() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Card>
+        <CardContent className="p-4 flex flex-col gap-1">
+           <span className="text-sm font-medium text-gray-500">Total Stock Items</span>
+           <span className="text-2xl font-bold text-gray-900">{totalStock.toLocaleString()}</span>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-4 flex flex-col gap-1">
+           <span className="text-sm font-medium text-gray-500">Total Inventory Cost (Asset Value)</span>
+           <span className="text-2xl font-bold text-indigo-600">{formatCurrencyTotals(totalCostByCurrency)}</span>
+           <span className="text-xs text-gray-400">Sum of (Cost Price × Quantity)</span>
+        </CardContent>
+      </Card>
+      <Card>
+         <CardContent className="p-4 flex flex-col gap-1">
+           <span className="text-sm font-medium text-gray-500">Total Retail Value</span>
+           <span className="text-2xl font-bold text-green-600">{formatCurrencyTotals(totalRetailByCurrency)}</span>
+           <span className="text-xs text-gray-400">Sum of (Price × Quantity)</span>
+        </CardContent>
+      </Card>
+    </div>
+
+    <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
