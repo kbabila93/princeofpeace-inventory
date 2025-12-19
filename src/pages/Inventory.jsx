@@ -169,6 +169,14 @@ export default function Inventory() {
     return acc;
   }, {});
 
+  const totalProfitByCurrency = filteredProducts.reduce((acc, p) => {
+    const curr = p.currency || 'USD';
+    const cost = (p.quantity || 0) * (p.cost_price || 0);
+    const retail = (p.quantity || 0) * (p.price || 0);
+    acc[curr] = (acc[curr] || 0) + (retail - cost);
+    return acc;
+  }, {});
+
   const formatCurrencyTotals = (totals) => {
     const entries = Object.entries(totals);
     if (entries.length === 0) return "0.00";
@@ -373,7 +381,7 @@ export default function Inventory() {
 
   return (
   <div className="space-y-6">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card>
         <CardContent className="p-4 flex flex-col gap-1">
            <span className="text-sm font-medium text-gray-500">Total Stock Items</span>
@@ -382,16 +390,23 @@ export default function Inventory() {
       </Card>
       <Card>
         <CardContent className="p-4 flex flex-col gap-1">
-           <span className="text-sm font-medium text-gray-500">Total Inventory Cost (Asset Value)</span>
-           <span className="text-2xl font-bold text-indigo-600">{formatCurrencyTotals(totalCostByCurrency)}</span>
-           <span className="text-xs text-gray-400">Sum of (Cost Price × Quantity)</span>
+           <span className="text-sm font-medium text-gray-500">Total Cost (Asset Value)</span>
+           <span className="text-2xl font-bold text-blue-600">{formatCurrencyTotals(totalCostByCurrency)}</span>
+           <span className="text-xs text-gray-400">Sum of (Cost × Quantity)</span>
         </CardContent>
       </Card>
       <Card>
          <CardContent className="p-4 flex flex-col gap-1">
            <span className="text-sm font-medium text-gray-500">Total Retail Value</span>
-           <span className="text-2xl font-bold text-green-600">{formatCurrencyTotals(totalRetailByCurrency)}</span>
+           <span className="text-2xl font-bold text-purple-600">{formatCurrencyTotals(totalRetailByCurrency)}</span>
            <span className="text-xs text-gray-400">Sum of (Price × Quantity)</span>
+        </CardContent>
+      </Card>
+      <Card>
+         <CardContent className="p-4 flex flex-col gap-1">
+           <span className="text-sm font-medium text-gray-500">Projected Profit</span>
+           <span className="text-2xl font-bold text-green-600">{formatCurrencyTotals(totalProfitByCurrency)}</span>
+           <span className="text-xs text-gray-400">Retail Value - Total Cost</span>
         </CardContent>
       </Card>
     </div>
