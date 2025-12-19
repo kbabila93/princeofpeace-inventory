@@ -53,6 +53,7 @@ import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
 import PrinterSettingsDialog from '@/components/inventory/PrinterSettingsDialog';
 import BulkEditDialog from '@/components/inventory/BulkEditDialog';
 import ProductDetailsDialog from '@/components/inventory/ProductDetailsDialog';
+import ImagePreviewDialog from '@/components/inventory/ImagePreviewDialog';
 import { useBarcodeScanner } from '../components/hooks/useBarcodeScanner';
 import { toast } from 'sonner';
 import { ScanBarcode, CheckSquare, XSquare, Layers } from 'lucide-react';
@@ -79,6 +80,7 @@ export default function Inventory() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [viewingProduct, setViewingProduct] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -498,7 +500,14 @@ export default function Inventory() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden">
+                        <div 
+                          className={`w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden ${product.image_url ? 'cursor-zoom-in hover:ring-2 hover:ring-indigo-200 transition-all' : ''}`}
+                          onClick={(e) => e.stopPropagation()}
+                          onDoubleClick={(e) => {
+                            e.stopPropagation();
+                            if (product.image_url) setPreviewImage({ url: product.image_url, name: product.name });
+                          }}
+                        >
                           {product.image_url ? (
                             <img src={product.image_url} alt="" className="w-full h-full object-cover" />
                           ) : (
@@ -664,6 +673,12 @@ export default function Inventory() {
         onClose={() => setViewingProduct(null)}
         product={viewingProduct}
         onEdit={handleEdit}
+      />
+
+      <ImagePreviewDialog 
+        isOpen={!!previewImage}
+        onClose={() => setPreviewImage(null)}
+        image={previewImage}
       />
       </div>
       );
