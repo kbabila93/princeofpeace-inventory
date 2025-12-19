@@ -12,7 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Plus, ShoppingCart, ScanBarcode, User } from 'lucide-react';
+import { Trash2, Plus, ShoppingCart, ScanBarcode, User, Check, ChevronsUpDown, Search } from 'lucide-react';
+import { 
+    Popover, 
+    PopoverContent, 
+    PopoverTrigger 
+} from "@/components/ui/popover";
 import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
 import { toast } from 'sonner';
 
@@ -29,6 +34,8 @@ export default function NewSaleModal({ isOpen, onClose }) {
     const [selectedCustomerId, setSelectedCustomerId] = useState("walk-in");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isScanOpen, setIsScanOpen] = useState(false);
+    const [productSearch, setProductSearch] = useState("");
+    const [isProductPopoverOpen, setIsProductPopoverOpen] = useState(false);
 
     // Fetch current user
     const { data: user } = useQuery({
@@ -63,6 +70,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
             setQty(1);
             setUnitPrice("");
             setSelectedProductId("");
+            setProductSearch("");
         }
     }, [isOpen]);
 
@@ -77,6 +85,11 @@ export default function NewSaleModal({ isOpen, onClose }) {
     }, [selectedProductId, products]);
 
     const selectedProduct = products.find(p => p.id === selectedProductId);
+
+    const filteredProducts = products.filter(p => 
+        p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
+        (p.sku && p.sku.toLowerCase().includes(productSearch.toLowerCase()))
+    );
 
     const addItemToCart = (product, quantity, price) => {
         if (!product) return;
@@ -234,27 +247,61 @@ export default function NewSaleModal({ isOpen, onClose }) {
                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
                             <div className="sm:col-span-5 space-y-2">
                                 <Label>Product</Label>
-                                <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select product..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {products.map(p => {
-                                            const available = p.quantity || 0;
-                                            const isOutOfStock = available <= 0;
-                                            return (
-                                                <SelectItem key={p.id} value={p.id} disabled={isOutOfStock}>
-                                                    <div className="flex justify-between w-full gap-4">
-                                                        <span>{p.name}</span>
-                                                        <span className={isOutOfStock ? "text-red-500" : "text-gray-500"}>
-                                                            ${p.price} | {available} in stock
-                                                        </span>
-                                                    </div>
-                                                </SelectItem>
-                                            );
-                                        })}
-                                    </SelectContent>
-                                </Select>
+                                <Popover open={isProductPopoverOpen} onOpenChange={setIsProductPopoverOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" role="combobox" className="w-full justify-between bg-white font-normal">
+                                            {selectedProductId 
+                                                ? products.find(p => p.id === selectedProductId)?.name 
+                                                : "Select product..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[300px] p-0" align="start">
+                                        <div className="flex items-center border-b px-3">
+                                            <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                                            <Input 
+                                                placeholder="Search products..." 
+                                                value={productSearch}
+                                                onChange={(e) => setProductSearch(e.target.value)}
+                                                className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground border-none focus-visible:ring-0 shadow-none"
+                                            />
+                                        </div>
+                                        <div className="max-h-[300px] overflow-y-auto p-1">
+                                            {filteredProducts.length === 0 ? (
+                                                <div className="py-6 text-center text-sm text-gray-500">No products found.</div>
+                                            ) : (
+                                                filteredProducts.map(product => {
+                                                    const isOutOfStock = (product.quantity || 0) <= 0;
+                                                    return (
+                                                        <div 
+                                                            key={product.id}
+                                                            className={`flex items-center px-2 py-2 text-sm rounded-sm cursor-pointer hover:bg-slate-100 ${selectedProductId === product.id ? 'bg-slate-100' : ''} ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            onClick={() => {
+                                                                if (!isOutOfStock) {
+                                                                    setSelectedProductId(product.id);
+                                                                    setIsProductPopoverOpen(false);
+                                                                    setProductSearch(""); 
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Check className={`mr-2 h-4 w-4 ${selectedProductId === product.id ? "opacity-100" : "opacity-0"}`} />
+                                                            <div className="flex-1">
+                                                                <div className="flex justify-between items-center">
+                                                                    <span className="font-medium truncate">{product.name}</span>
+                                                                    <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">${product.price}</span>
+                                                                </div>
+                                                                <div className="text-xs text-gray-400">
+                                                                    {isOutOfStock ? "Out of Stock" : `${product.quantity} in stock`}
+                                                                    {product.sku && <span className="ml-2">• {product.sku}</span>}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                             <div className="sm:col-span-2 space-y-2">
                                 <Label>Qty</Label>
