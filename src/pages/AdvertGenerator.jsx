@@ -3,21 +3,16 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Megaphone, 
-  Instagram, 
-  Facebook, 
-  Twitter, 
   Video, 
   Image as ImageIcon,
   Loader2,
   Share2,
   Copy,
   Sparkles,
-  Play,
   Save,
   History,
   Trash2,
-  Download,
-  ExternalLink
+  Download
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -270,9 +265,7 @@ export default function AdvertGenerator() {
                     </div>
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-500 uppercase">
-                        {platform === 'twitter' ? <Twitter className="w-4 h-4" /> : 
-                         platform === 'facebook' ? <Facebook className="w-4 h-4" /> :
-                         <Instagram className="w-4 h-4" />}
+                        <Share2 className="w-4 h-4" />
                         Preview
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg whitespace-pre-wrap text-sm border">
