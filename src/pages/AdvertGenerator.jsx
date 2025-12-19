@@ -44,7 +44,7 @@ export default function AdvertGenerator() {
 
   const { data: adverts = [] } = useQuery({
     queryKey: ['adverts'],
-    queryFn: () => base44.entities.Advert.list('-created_date'),
+    queryFn: () => base44.entities.Advert.list('-created_date', 50),
   });
 
   const selectedProduct = products.find(p => p.id === selectedProductId);
@@ -91,22 +91,26 @@ export default function AdvertGenerator() {
       Include engaging emojis and hashtags. 
       Return ONLY the text content.`;
 
-      const textResponse = await base44.integrations.Core.InvokeLLM({ prompt });
+      // Execute generations in parallel
+      const textPromise = base44.integrations.Core.InvokeLLM({ prompt });
       
       // 2. Get Image (Use product image if available, otherwise generate)
-      let imageUrl = selectedProduct.image_url;
+      let imagePromise;
 
-      if (!imageUrl) {
+      if (selectedProduct.image_url) {
+        imagePromise = Promise.resolve({ url: selectedProduct.image_url });
+      } else {
         const imagePrompt = `Professional product photography of ${selectedProduct.name}, ${selectedProduct.description}, 
         advertising style, high quality, 4k, cinematic lighting, trendy, appealing for ${platform} social media.`;
         
-        const imageResponse = await base44.integrations.Core.GenerateImage({ prompt: imagePrompt });
-        imageUrl = imageResponse.url;
+        imagePromise = base44.integrations.Core.GenerateImage({ prompt: imagePrompt });
       }
+
+      const [textResponse, imageResponse] = await Promise.all([textPromise, imagePromise]);
 
       return {
         text: textResponse,
-        imageUrl: imageUrl,
+        imageUrl: imageResponse.url,
         productName: selectedProduct.name,
         price: `${selectedProduct.currency} ${selectedProduct.price}`
       };
