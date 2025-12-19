@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Plus, ShoppingCart, ScanBarcode, User, Check, ChevronsUpDown, Search } from 'lucide-react';
+import { Trash2, Plus, ShoppingCart, ScanBarcode, User, Check, ChevronDown, Search } from 'lucide-react';
 import { 
     Popover, 
     PopoverContent, 
@@ -253,7 +253,7 @@ export default function NewSaleModal({ isOpen, onClose }) {
                                             {selectedProductId 
                                                 ? products.find(p => p.id === selectedProductId)?.name 
                                                 : "Select product..."}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-[300px] p-0" align="start">
