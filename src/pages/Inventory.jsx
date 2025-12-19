@@ -52,6 +52,7 @@ import ShareProductDialog from '@/components/inventory/ShareProductDialog';
 import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
 import PrinterSettingsDialog from '@/components/inventory/PrinterSettingsDialog';
 import BulkEditDialog from '@/components/inventory/BulkEditDialog';
+import ProductDetailsDialog from '@/components/inventory/ProductDetailsDialog';
 import { useBarcodeScanner } from '../components/hooks/useBarcodeScanner';
 import { toast } from 'sonner';
 import { ScanBarcode, CheckSquare, XSquare, Layers } from 'lucide-react';
@@ -77,6 +78,7 @@ export default function Inventory() {
   
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [viewingProduct, setViewingProduct] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -480,7 +482,14 @@ export default function Inventory() {
                 const isOutOfStock = (product.quantity || 0) === 0;
 
                 return (
-                  <TableRow key={product.id} className={selectedIds.includes(product.id) ? "bg-indigo-50/50" : ""}>
+                  <TableRow 
+                    key={product.id} 
+                    className={`cursor-pointer transition-colors hover:bg-gray-50 ${selectedIds.includes(product.id) ? "bg-indigo-50/50" : ""}`}
+                    onClick={(e) => {
+                      if (e.target.closest('[role="checkbox"]') || e.target.closest('button') || e.target.closest('[role="menuitem"]')) return;
+                      setViewingProduct(product);
+                    }}
+                  >
                     <TableCell>
                       <Checkbox 
                         checked={selectedIds.includes(product.id)}
@@ -648,6 +657,13 @@ export default function Inventory() {
         onClose={() => setBulkEditOpen(false)}
         selectedIds={selectedIds}
         onComplete={() => setSelectedIds([])}
+      />
+
+      <ProductDetailsDialog 
+        isOpen={!!viewingProduct}
+        onClose={() => setViewingProduct(null)}
+        product={viewingProduct}
+        onEdit={handleEdit}
       />
       </div>
       );
