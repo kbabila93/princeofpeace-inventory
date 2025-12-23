@@ -422,8 +422,12 @@ export default function Inventory() {
               placeholder="Search products..." 
               className="pl-9"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                console.log("Search input:", e.target.value);
+                setSearch(e.target.value);
+              }}
               type="text"
+              autoComplete="off"
             />
           </div>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
