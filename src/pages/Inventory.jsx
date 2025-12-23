@@ -127,30 +127,33 @@ export default function Inventory() {
     }
   };
 
-  const filteredProducts = (products || []).filter(product => {
-    const searchLower = (search || "").toLowerCase();
-    const matchesSearch = (product.name || "").toLowerCase().includes(searchLower) || 
-                          (product.sku || "").toLowerCase().includes(searchLower);
-    const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
-    const matchesSection = sectionFilter === "all" || (product.section || "Main") === sectionFilter;
-    
-    let matchesStatus = true;
-    if (statusFilter === "low_stock") {
-      matchesStatus = (product.quantity || 0) <= (product.low_stock_threshold || 10);
-    } else if (statusFilter === "out_of_stock") {
-      matchesStatus = (product.quantity || 0) === 0;
-    }
+  const filteredProducts = React.useMemo(() => {
+    console.log("Filtering with search:", search, "Products count:", products?.length);
+    return (products || []).filter(product => {
+      const searchLower = (search || "").toLowerCase();
+      const matchesSearch = (product.name || "").toLowerCase().includes(searchLower) || 
+                            (product.sku || "").toLowerCase().includes(searchLower);
+      const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
+      const matchesSection = sectionFilter === "all" || (product.section || "Main") === sectionFilter;
+      
+      let matchesStatus = true;
+      if (statusFilter === "low_stock") {
+        matchesStatus = (product.quantity || 0) <= (product.low_stock_threshold || 10);
+      } else if (statusFilter === "out_of_stock") {
+        matchesStatus = (product.quantity || 0) === 0;
+      }
 
-    return matchesSearch && matchesCategory && matchesSection && matchesStatus;
-  }).sort((a, b) => {
-    const nameA = (a.name || "").toLowerCase();
-    const nameB = (b.name || "").toLowerCase();
-    if (sortOrder === 'asc') {
-      return nameA.localeCompare(nameB);
-    } else {
-      return nameB.localeCompare(nameA);
-    }
-  });
+      return matchesSearch && matchesCategory && matchesSection && matchesStatus;
+    }).sort((a, b) => {
+      const nameA = (a.name || "").toLowerCase();
+      const nameB = (b.name || "").toLowerCase();
+      if (sortOrder === 'asc') {
+        return nameA.localeCompare(nameB);
+      } else {
+        return nameB.localeCompare(nameA);
+      }
+    });
+  }, [products, search, categoryFilter, sectionFilter, statusFilter, sortOrder]);
 
   // Get unique sections for filter
   const uniqueSections = [...new Set((products || []).map(p => p.section || "Main"))].sort();
