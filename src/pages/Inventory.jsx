@@ -423,12 +423,12 @@ export default function Inventory() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none z-10" />
             <Input 
               placeholder="Search products..." 
-              className="pl-9 text-gray-900"
+              className="pl-9 !text-gray-900 bg-white"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               type="text"
               autoComplete="off"
-              style={{ color: '#111827' }}
+              style={{ color: '#111827 !important', backgroundColor: 'white' }}
             />
           </div>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
