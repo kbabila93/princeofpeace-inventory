@@ -127,7 +127,7 @@ export default function Inventory() {
     }
   };
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = (products || []).filter(product => {
     const matchesSearch = (product.name || "").toLowerCase().includes(search.toLowerCase()) || 
                           (product.sku || "").toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
@@ -142,15 +142,17 @@ export default function Inventory() {
 
     return matchesSearch && matchesCategory && matchesSection && matchesStatus;
   }).sort((a, b) => {
+    const nameA = (a.name || "").toLowerCase();
+    const nameB = (b.name || "").toLowerCase();
     if (sortOrder === 'asc') {
-      return a.name.localeCompare(b.name);
+      return nameA.localeCompare(nameB);
     } else {
-      return b.name.localeCompare(a.name);
+      return nameB.localeCompare(nameA);
     }
   });
 
   // Get unique sections for filter
-  const uniqueSections = [...new Set(products.map(p => p.section || "Main"))].sort();
+  const uniqueSections = [...new Set((products || []).map(p => p.section || "Main"))].sort();
 
   // Calculate totals
   const totalStock = filteredProducts.reduce((sum, p) => sum + (p.quantity || 0), 0);
