@@ -155,6 +155,19 @@ export default function Inventory() {
     });
   }, [products, search, categoryFilter, sectionFilter, statusFilter, sortOrder]);
 
+  // Group products by first letter
+  const groupedProducts = React.useMemo(() => {
+    const groups = {};
+    filteredProducts.forEach(product => {
+      const firstLetter = (product.name || "?")[0].toUpperCase();
+      if (!groups[firstLetter]) {
+        groups[firstLetter] = [];
+      }
+      groups[firstLetter].push(product);
+    });
+    return groups;
+  }, [filteredProducts]);
+
   // Get unique sections for filter
   const uniqueSections = [...new Set((products || []).map(p => p.section || "Main"))].sort();
 
@@ -550,7 +563,14 @@ export default function Inventory() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.map((product) => {
+              Object.keys(groupedProducts).sort().map((letter) => (
+                <React.Fragment key={letter}>
+                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    <TableCell colSpan={9} className="font-bold text-indigo-600 text-lg py-3">
+                      {letter}
+                    </TableCell>
+                  </TableRow>
+                  {groupedProducts[letter].map((product) => {
                 const isLowStock = (product.quantity || 0) <= (product.low_stock_threshold || 10);
                 const isOutOfStock = (product.quantity || 0) === 0;
 
@@ -685,11 +705,13 @@ export default function Inventory() {
                     </TableCell>
                   </TableRow>
                 );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                })}
+                </React.Fragment>
+                ))
+                )}
+                </TableBody>
+                </Table>
+                </div>
 
       <ProductForm 
         isOpen={isProductFormOpen} 
