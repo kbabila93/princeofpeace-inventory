@@ -87,8 +87,8 @@ export default function NewSaleModal({ isOpen, onClose }) {
     const selectedProduct = products.find(p => p.id === selectedProductId);
 
     const filteredProducts = products.filter(p => 
-        p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
-        (p.sku && p.sku.toLowerCase().includes(productSearch.toLowerCase()))
+        (p.name || "").toLowerCase().includes(productSearch.toLowerCase()) || 
+        (p.sku || "").toLowerCase().includes(productSearch.toLowerCase())
     );
 
     const addItemToCart = (product, quantity, price) => {
