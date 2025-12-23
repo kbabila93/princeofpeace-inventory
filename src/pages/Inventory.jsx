@@ -128,8 +128,9 @@ export default function Inventory() {
   };
 
   const filteredProducts = (products || []).filter(product => {
-    const matchesSearch = (product.name || "").toLowerCase().includes(search.toLowerCase()) || 
-                          (product.sku || "").toLowerCase().includes(search.toLowerCase());
+    const searchLower = (search || "").toLowerCase();
+    const matchesSearch = (product.name || "").toLowerCase().includes(searchLower) || 
+                          (product.sku || "").toLowerCase().includes(searchLower);
     const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
     const matchesSection = sectionFilter === "all" || (product.section || "Main") === sectionFilter;
     
