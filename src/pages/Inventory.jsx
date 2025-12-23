@@ -420,17 +420,15 @@ export default function Inventory() {
     <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none z-10" />
             <Input 
               placeholder="Search products..." 
-              className="pl-9"
+              className="pl-9 text-gray-900"
               value={search}
-              onChange={(e) => {
-                console.log("Search input:", e.target.value);
-                setSearch(e.target.value);
-              }}
+              onChange={(e) => setSearch(e.target.value)}
               type="text"
               autoComplete="off"
+              style={{ color: '#111827' }}
             />
           </div>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
