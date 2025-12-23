@@ -36,7 +36,7 @@ export default function InventorySections() {
   });
 
   // Group products by section
-  const productsBySection = products.reduce((acc, product) => {
+  const productsBySection = (products || []).reduce((acc, product) => {
     const section = product.section || "Main";
     if (!acc[section]) {
       acc[section] = [];
