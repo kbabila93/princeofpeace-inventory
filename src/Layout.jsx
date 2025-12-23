@@ -65,6 +65,7 @@ export default function Layout({ children, currentPageName }) {
   const navigation = [
     { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard, permission: 'view_dashboard' },
     { name: 'Sales', href: 'Sales', icon: DollarSign, permission: 'manage_sales' },
+    { name: 'Sales by Section', href: 'SalesBySections', icon: DollarSign, permission: 'manage_sales' },
     { name: 'Expenditures', href: 'Expenditures', icon: Receipt, permission: 'manage_expenditures' },
     { name: 'Inventory', href: 'Inventory', icon: Package, permission: 'manage_inventory' },
     { name: 'Sections View', href: 'InventorySections', icon: Grid3x3, permission: 'manage_inventory' },
