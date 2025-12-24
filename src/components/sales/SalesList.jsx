@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { 
     Table, 
@@ -12,8 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Printer, User } from "lucide-react";
 import { toast } from "sonner";
+import SaleDetailsDialog from './SaleDetailsDialog';
 
 export default function SalesList({ sales, isLoading }) {
+    const [viewingSale, setViewingSale] = useState(null);
     const handlePrintReceipt = (sale) => {
         const printWindow = window.open('', '_blank', 'width=400,height=600');
         
@@ -121,7 +123,11 @@ export default function SalesList({ sales, isLoading }) {
             </TableHeader>
             <TableBody>
                 {sales.map((sale) => (
-                    <TableRow key={sale.id}>
+                    <TableRow 
+                        key={sale.id}
+                        className="cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => setViewingSale(sale)}
+                    >
                         <TableCell className="font-medium text-gray-900">
                             {format(new Date(sale.date), 'MMM d, yyyy h:mm a')}
                         </TableCell>
@@ -156,7 +162,10 @@ export default function SalesList({ sales, isLoading }) {
                             <Button 
                                 variant="ghost" 
                                 size="icon"
-                                onClick={() => handlePrintReceipt(sale)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePrintReceipt(sale);
+                                }}
                                 title="Print Receipt"
                             >
                                 <Printer className="w-4 h-4 text-gray-500" />
@@ -166,5 +175,11 @@ export default function SalesList({ sales, isLoading }) {
                 ))}
             </TableBody>
         </Table>
+
+        <SaleDetailsDialog 
+            isOpen={!!viewingSale}
+            onClose={() => setViewingSale(null)}
+            sale={viewingSale}
+        />
     );
 }
