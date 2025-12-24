@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, DollarSign, Calendar, History, Trash2, Loader2, Printer } from 'lucide-react';
+import { Plus, DollarSign, Calendar, History, Trash2, Loader2, Printer, TrendingUp } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from 'date-fns';
@@ -9,10 +9,12 @@ import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 import NewSaleModal from '@/components/sales/NewSaleModal.jsx';
 import SalesList from '@/components/sales/SalesList.jsx';
+import ProfitSummaryDialog from '@/components/sales/ProfitSummaryDialog.jsx';
 
 export default function SalesPage() {
     const [isNewSaleOpen, setIsNewSaleOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isProfitDialogOpen, setIsProfitDialogOpen] = useState(false);
     const queryClient = useQueryClient();
 
     // Fetch current user for permissions
@@ -118,6 +120,14 @@ export default function SalesPage() {
                 <div className="flex gap-2">
                     <Button 
                         variant="outline"
+                        onClick={() => setIsProfitDialogOpen(true)}
+                        disabled={sales.length === 0}
+                    >
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        View Profit
+                    </Button>
+                    <Button 
+                        variant="outline"
                         onClick={handlePrintReport}
                         disabled={sales.length === 0}
                     >
@@ -171,6 +181,13 @@ export default function SalesPage() {
             <NewSaleModal 
                 isOpen={isNewSaleOpen} 
                 onClose={() => setIsNewSaleOpen(false)} 
+            />
+
+            {/* Profit Summary Dialog */}
+            <ProfitSummaryDialog 
+                isOpen={isProfitDialogOpen}
+                onClose={() => setIsProfitDialogOpen(false)}
+                sales={sales}
             />
         </div>
     );
