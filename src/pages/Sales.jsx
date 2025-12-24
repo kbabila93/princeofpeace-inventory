@@ -15,6 +15,7 @@ export default function SalesPage() {
     const [isNewSaleOpen, setIsNewSaleOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isProfitDialogOpen, setIsProfitDialogOpen] = useState(false);
+    const [groupBy, setGroupBy] = useState('date'); // 'date' or 'section'
     const queryClient = useQueryClient();
 
     // Fetch current user for permissions
@@ -29,6 +30,12 @@ export default function SalesPage() {
     const { data: sales = [], isLoading } = useQuery({
         queryKey: ['sales'],
         queryFn: () => base44.entities.Sale.list('-date', 50),
+    });
+
+    // Fetch products to get section information
+    const { data: products = [] } = useQuery({
+        queryKey: ['products'],
+        queryFn: () => base44.entities.Product.list(),
     });
 
     const deleteSalesMutation = useMutation({
@@ -168,13 +175,29 @@ export default function SalesPage() {
 
             {/* Sales History List */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="p-6 border-b border-gray-100">
+                <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                         <History className="w-5 h-5 text-gray-500" />
                         Recent Sales
                     </h3>
+                    <div className="flex gap-2">
+                        <Button
+                            variant={groupBy === 'date' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGroupBy('date')}
+                        >
+                            By Date
+                        </Button>
+                        <Button
+                            variant={groupBy === 'section' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setGroupBy('section')}
+                        >
+                            By Section
+                        </Button>
+                    </div>
                 </div>
-                <SalesList sales={sales} isLoading={isLoading} />
+                <SalesList sales={sales} isLoading={isLoading} groupBy={groupBy} products={products} />
             </div>
 
             {/* New Sale Modal */}

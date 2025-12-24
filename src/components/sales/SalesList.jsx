@@ -16,7 +16,7 @@ import SaleDetailsDialog from './SaleDetailsDialog';
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
-export default function SalesList({ sales, isLoading }) {
+export default function SalesList({ sales, isLoading, groupBy = 'date', products = [] }) {
     const [viewingSale, setViewingSale] = useState(null);
     const queryClient = useQueryClient();
 
@@ -141,13 +141,42 @@ export default function SalesList({ sales, isLoading }) {
         );
     }
 
-    // Group sales by date
+    // Group sales by date or section
     const groupedSales = sales.reduce((groups, sale) => {
-        const dateKey = format(new Date(sale.date), 'EEEE, MMM d, yyyy');
-        if (!groups[dateKey]) {
-            groups[dateKey] = [];
+        let groupKey;
+
+        if (groupBy === 'section') {
+            // Parse items and determine sections
+            const items = JSON.parse(sale.items_json || "[]");
+            const sections = new Set();
+
+            items.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                const section = product?.section || "Main";
+                sections.add(section);
+            });
+
+            // If multiple sections, add to each
+            if (sections.size === 0) {
+                groupKey = "Unknown Section";
+                if (!groups[groupKey]) groups[groupKey] = [];
+                groups[groupKey].push(sale);
+            } else {
+                sections.forEach(section => {
+                    if (!groups[section]) groups[section] = [];
+                    groups[section].push(sale);
+                });
+                return groups;
+            }
+        } else {
+            // Group by date
+            groupKey = format(new Date(sale.date), 'EEEE, MMM d, yyyy');
+            if (!groups[groupKey]) {
+                groups[groupKey] = [];
+            }
+            groups[groupKey].push(sale);
         }
-        groups[dateKey].push(sale);
+
         return groups;
     }, {});
 
