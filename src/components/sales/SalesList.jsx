@@ -10,12 +10,46 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Printer, User } from "lucide-react";
+import { Printer, User, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import SaleDetailsDialog from './SaleDetailsDialog';
+import { base44 } from "@/api/base44Client";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 export default function SalesList({ sales, isLoading }) {
     const [viewingSale, setViewingSale] = useState(null);
+    const queryClient = useQueryClient();
+
+    const { data: user } = useQuery({
+        queryKey: ['me'],
+        queryFn: () => base44.auth.me(),
+    });
+
+    const canDelete = user?.role === 'admin' || (user?.permissions || []).includes('manage_sales');
+
+    const deleteSaleMutation = useMutation({
+        mutationFn: async (saleId) => {
+            await base44.entities.Sale.delete(saleId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['sales'] });
+            toast.success("Sale deleted successfully");
+        },
+        onError: () => {
+            toast.error("Failed to delete sale");
+        }
+    });
+
+    const handleDeleteSale = (e, sale) => {
+        e.stopPropagation();
+        if (!canDelete) {
+            toast.error("You don't have permission to delete sales");
+            return;
+        }
+        if (confirm(`Delete this sale for ${sale.currency || '$'} ${Number(sale.total_amount).toFixed(2)}?`)) {
+            deleteSaleMutation.mutate(sale.id);
+        }
+    };
     const handlePrintReceipt = (sale) => {
         const printWindow = window.open('', '_blank', 'width=400,height=600');
         
@@ -160,17 +194,30 @@ export default function SalesList({ sales, isLoading }) {
                                 {sale.currency || '$'} {(sale.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </TableCell>
                             <TableCell className="text-right">
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlePrintReceipt(sale);
-                                    }}
-                                    title="Print Receipt"
-                                >
-                                    <Printer className="w-4 h-4 text-gray-500" />
-                                </Button>
+                                <div className="flex items-center justify-end gap-1">
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handlePrintReceipt(sale);
+                                        }}
+                                        title="Print Receipt"
+                                    >
+                                        <Printer className="w-4 h-4 text-gray-500" />
+                                    </Button>
+                                    {canDelete && (
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon"
+                                            onClick={(e) => handleDeleteSale(e, sale)}
+                                            title="Delete Sale"
+                                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))}
