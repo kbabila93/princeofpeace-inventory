@@ -108,78 +108,80 @@ export default function SalesList({ sales, isLoading }) {
     }
 
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Sales Rep</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead className="text-right">Profit</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {sales.map((sale) => (
-                    <TableRow 
-                        key={sale.id}
-                        className="cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => setViewingSale(sale)}
-                    >
-                        <TableCell className="font-medium text-gray-900">
-                            {format(new Date(sale.date), 'MMM d, yyyy h:mm a')}
-                        </TableCell>
-                        <TableCell>
-                            <span className="text-sm font-medium text-indigo-600">
-                                {sale.sales_rep_name || sale.created_by || "System"}
-                            </span>
-                        </TableCell>
-                        <TableCell>
-                            <div className="flex items-center gap-1 text-gray-700">
-                                <User className="w-3 h-3 text-gray-400" />
-                                {sale.customer_name || "Walk-in"}
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <span className="text-gray-600 line-clamp-1" title={sale.items_summary}>
-                                {sale.items_summary || "No items details"}
-                            </span>
-                        </TableCell>
-                        <TableCell>
-                            <Badge variant="outline" className="capitalize">
-                                {sale.payment_method}
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="text-right text-green-600 font-medium">
-                            {sale.total_profit !== undefined ? `${sale.currency || '$'} ${sale.total_profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-gray-900">
-                            {sale.currency || '$'} {(sale.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <Button 
-                                variant="ghost" 
-                                size="icon"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handlePrintReceipt(sale);
-                                }}
-                                title="Print Receipt"
-                            >
-                                <Printer className="w-4 h-4 text-gray-500" />
-                            </Button>
-                        </TableCell>
+        <>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Sales Rep</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead className="text-right">Profit</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {sales.map((sale) => (
+                        <TableRow 
+                            key={sale.id}
+                            className="cursor-pointer hover:bg-gray-50 transition-colors"
+                            onClick={() => setViewingSale(sale)}
+                        >
+                            <TableCell className="font-medium text-gray-900">
+                                {format(new Date(sale.date), 'MMM d, yyyy h:mm a')}
+                            </TableCell>
+                            <TableCell>
+                                <span className="text-sm font-medium text-indigo-600">
+                                    {sale.sales_rep_name || sale.created_by || "System"}
+                                </span>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-1 text-gray-700">
+                                    <User className="w-3 h-3 text-gray-400" />
+                                    {sale.customer_name || "Walk-in"}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <span className="text-gray-600 line-clamp-1" title={sale.items_summary}>
+                                    {sale.items_summary || "No items details"}
+                                </span>
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant="outline" className="capitalize">
+                                    {sale.payment_method}
+                                </Badge>
+                            </TableCell>
+                            <TableCell className="text-right text-green-600 font-medium">
+                                {sale.total_profit !== undefined ? `${sale.currency || '$'} ${sale.total_profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-gray-900">
+                                {sale.currency || '$'} {(sale.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePrintReceipt(sale);
+                                    }}
+                                    title="Print Receipt"
+                                >
+                                    <Printer className="w-4 h-4 text-gray-500" />
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
 
-        <SaleDetailsDialog 
-            isOpen={!!viewingSale}
-            onClose={() => setViewingSale(null)}
-            sale={viewingSale}
-        />
+            <SaleDetailsDialog 
+                isOpen={!!viewingSale}
+                onClose={() => setViewingSale(null)}
+                sale={viewingSale}
+            />
+        </>
     );
 }
