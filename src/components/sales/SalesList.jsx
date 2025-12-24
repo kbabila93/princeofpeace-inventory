@@ -141,6 +141,16 @@ export default function SalesList({ sales, isLoading }) {
         );
     }
 
+    // Group sales by date
+    const groupedSales = sales.reduce((groups, sale) => {
+        const dateKey = format(new Date(sale.date), 'EEEE, MMM d, yyyy');
+        if (!groups[dateKey]) {
+            groups[dateKey] = [];
+        }
+        groups[dateKey].push(sale);
+        return groups;
+    }, {});
+
     return (
         <>
             <Table>
@@ -157,7 +167,17 @@ export default function SalesList({ sales, isLoading }) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {sales.map((sale) => (
+                    {Object.entries(groupedSales).map(([dateKey, dateSales]) => (
+                        <React.Fragment key={dateKey}>
+                            <TableRow className="bg-indigo-50 hover:bg-indigo-50">
+                                <TableCell colSpan={8} className="font-bold text-indigo-900 text-base py-3">
+                                    {dateKey}
+                                    <span className="ml-3 text-sm font-normal text-indigo-600">
+                                        ({dateSales.length} sale{dateSales.length !== 1 ? 's' : ''})
+                                    </span>
+                                </TableCell>
+                            </TableRow>
+                            {dateSales.map((sale) => (
                         <TableRow 
                             key={sale.id}
                             className="cursor-pointer hover:bg-gray-50 transition-colors"
@@ -220,8 +240,10 @@ export default function SalesList({ sales, isLoading }) {
                                 </div>
                             </TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
+                        ))}
+                        </React.Fragment>
+                        ))}
+                        </TableBody>
             </Table>
 
             <SaleDetailsDialog 
