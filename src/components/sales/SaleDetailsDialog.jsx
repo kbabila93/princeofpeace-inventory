@@ -3,11 +3,28 @@ import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { User, Calendar, CreditCard, Package, TrendingUp } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 export default function SaleDetailsDialog({ isOpen, onClose, sale }) {
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => base44.entities.Product.list(),
+    enabled: isOpen
+  });
+
   if (!sale) return null;
 
   const items = JSON.parse(sale.items_json || "[]");
+  
+  // Map items with product images
+  const itemsWithImages = items.map(item => {
+    const product = products.find(p => p.id === item.productId);
+    return {
+      ...item,
+      image_url: product?.image_url || null
+    };
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -70,18 +87,27 @@ export default function SaleDetailsDialog({ isOpen, onClose, sale }) {
             </div>
             
             <div className="space-y-2">
-              {items.map((item, index) => (
+              {itemsWithImages.map((item, index) => (
                 <div 
                   key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">{item.name}</div>
+                  <div className="w-12 h-12 rounded-md bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-bold text-gray-400">
+                        {item.name.substring(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 truncate">{item.name}</div>
                     <div className="text-sm text-gray-500">
                       {item.quantity} × {sale.currency || '$'} {Number(item.price).toFixed(2)}
                     </div>
                   </div>
-                  <div className="font-bold text-gray-900">
+                  <div className="font-bold text-gray-900 flex-shrink-0">
                     {sale.currency || '$'} {(item.quantity * item.price).toFixed(2)}
                   </div>
                 </div>
