@@ -82,9 +82,10 @@ export default function ProductSalesReport() {
     return productSalesData.filter(p => p.name.toLowerCase().includes(search));
   }, [productSalesData, searchProduct]);
 
-  const totalRevenue = filteredProducts.reduce((sum, p) => sum + p.totalRevenue, 0);
-  const totalProfit = filteredProducts.reduce((sum, p) => sum + p.totalProfit, 0);
-  const totalQuantity = filteredProducts.reduce((sum, p) => sum + p.totalQuantity, 0);
+  const totalRevenue = filteredProducts.reduce((sum, p) => sum + (p.totalRevenue || 0), 0);
+  const totalProfit = filteredProducts.reduce((sum, p) => sum + (p.totalProfit || 0), 0);
+  const totalQuantity = filteredProducts.reduce((sum, p) => sum + (p.totalQuantity || 0), 0);
+  const currency = filteredProducts[0]?.currency || productSalesData[0]?.currency || 'USD';
 
   const handleExportPDF = () => {
     const doc = new jsPDF();
@@ -130,8 +131,8 @@ export default function ProductSalesReport() {
     doc.line(14, yPos - 5, 196, yPos - 5);
     doc.text("TOTALS:", 14, yPos);
     doc.text(String(totalQuantity), 100, yPos);
-    doc.text(`${filteredProducts[0]?.currency || 'USD'} ${totalRevenue.toFixed(2)}`, 130, yPos);
-    doc.text(`${filteredProducts[0]?.currency || 'USD'} ${totalProfit.toFixed(2)}`, 165, yPos);
+    doc.text(`${currency} ${totalRevenue.toFixed(2)}`, 130, yPos);
+    doc.text(`${currency} ${totalProfit.toFixed(2)}`, 165, yPos);
     
     doc.save("product-sales-report.pdf");
     toast.success("Report downloaded");
@@ -165,7 +166,7 @@ export default function ProductSalesReport() {
             <div className="flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-green-600" />
               <span className="text-2xl font-bold text-green-600">
-                {filteredProducts[0]?.currency || 'USD'} {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                {currency} {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           </CardContent>
@@ -179,7 +180,7 @@ export default function ProductSalesReport() {
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-purple-600" />
               <span className="text-2xl font-bold text-purple-600">
-                {filteredProducts[0]?.currency || 'USD'} {totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                {currency} {totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           </CardContent>
