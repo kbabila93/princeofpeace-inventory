@@ -20,25 +20,35 @@ import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 
 export default function Dashboard() {
-  const { data: products = [], isLoading: productsLoading } = useQuery({
+  const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery({
     queryKey: ['products'],
     queryFn: () => base44.entities.Product.list(),
   });
 
-  const { data: recentTransactions = [], isLoading: transactionsLoading } = useQuery({
+  const { data: recentTransactions = [], isLoading: transactionsLoading, error: transactionsError } = useQuery({
     queryKey: ['transactions', 'recent'],
     queryFn: () => base44.entities.Transaction.list('-date', 5),
   });
 
-  const { data: batches = [], isLoading: batchesLoading } = useQuery({
+  const { data: batches = [], isLoading: batchesLoading, error: batchesError } = useQuery({
     queryKey: ['batches', 'expiring'],
-    queryFn: () => base44.entities.Batch.list('expiration_date', 50), // Get 50 batches sorted by expiration date (ascending)
+    queryFn: () => base44.entities.Batch.list('expiration_date', 50),
   });
 
   if (productsLoading || transactionsLoading || batchesLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (productsError || transactionsError || batchesError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 text-red-600">
+        <AlertTriangle className="w-12 h-12 mb-4" />
+        <p className="text-lg font-semibold">Error loading dashboard</p>
+        <p className="text-sm text-gray-500">{productsError?.message || transactionsError?.message || batchesError?.message}</p>
       </div>
     );
   }
