@@ -22,6 +22,7 @@ export default function ProductForm({ isOpen, onClose, product, initialSku, user
     sku: initialSku || generateSKU(),
     category: "other",
     section: "Main",
+    status: "active",
     price: "",
     currency: "USD",
     cost_price: "",
@@ -41,6 +42,7 @@ export default function ProductForm({ isOpen, onClose, product, initialSku, user
             sku: initialSku || generateSKU(),
             category: "other",
             section: "Main",
+            status: "active",
             price: "",
             currency: "USD",
             cost_price: "",
@@ -189,6 +191,22 @@ export default function ProductForm({ isOpen, onClose, product, initialSku, user
                   <SelectItem value="beauty">Beauty</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
+                  </Select>
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select 
+                    value={formData.status} 
+                    onValueChange={(val) => setFormData({...formData, status: val})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="damaged">Damaged</SelectItem>
+                      <SelectItem value="discontinued">Discontinued</SelectItem>
+                    </SelectContent>
                   </Select>
                   </div>
                   <div className="space-y-2">
