@@ -228,7 +228,7 @@ export default function AdvertGenerator() {
   const handleShareToSocial = (platform) => {
     if (!generatedContent) return;
     
-    const text = generatedContent.text;
+    const text = isEditingContent ? editedText : generatedContent.text;
     const imageUrl = generatedContent.imageUrl;
     
     let shareUrl = '';
@@ -238,10 +238,15 @@ export default function AdvertGenerator() {
         shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
         break;
       case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(imageUrl)}&quote=${encodeURIComponent(text)}`;
+        // Copy caption to clipboard for Facebook
+        navigator.clipboard.writeText(text);
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(imageUrl)}`;
+        toast.success('Caption copied! Paste it when sharing on Facebook');
         break;
       case 'linkedin':
+        navigator.clipboard.writeText(text);
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(imageUrl)}`;
+        toast.success('Caption copied! Paste it when sharing on LinkedIn');
         break;
       case 'whatsapp':
         shareUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n' + imageUrl)}`;
@@ -252,7 +257,6 @@ export default function AdvertGenerator() {
     
     if (shareUrl) {
       window.open(shareUrl, '_blank', 'width=600,height=400');
-      toast.success(`Opening ${platform}...`);
     }
   };
 
