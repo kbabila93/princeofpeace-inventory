@@ -70,6 +70,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Expenditures', href: 'Expenditures', icon: Receipt, permission: 'manage_expenditures' },
     { name: 'Inventory', href: 'Inventory', icon: Package, permission: 'manage_inventory' },
     { name: 'Sections View', href: 'InventorySections', icon: Grid3x3, permission: 'manage_inventory' },
+    { name: 'Damaged Inventory', href: 'DamagedInventory', icon: AlertTriangle, permission: 'manage_inventory' },
     { name: 'Employees', href: 'Employees', icon: Users, permission: 'manage_employees' },
     { name: 'Customers', href: 'Customers', icon: Users, permission: 'manage_sales' },
     { name: 'Suppliers', href: 'Suppliers', icon: Truck, permission: 'manage_inventory' },

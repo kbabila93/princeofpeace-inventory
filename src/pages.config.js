@@ -14,6 +14,7 @@ import Suppliers from './pages/Suppliers';
 import Transactions from './pages/Transactions';
 import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
+import DamagedInventory from './pages/DamagedInventory';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "Transactions": Transactions,
     "Users": Users,
     "VideoConference": VideoConference,
+    "DamagedInventory": DamagedInventory,
 }
 
 export const pagesConfig = {
