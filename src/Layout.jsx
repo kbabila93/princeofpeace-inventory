@@ -21,7 +21,8 @@ import {
   Radio,
   Download,
   Grid3x3,
-  AlertTriangle
+  AlertTriangle,
+  Settings
   } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
