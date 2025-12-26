@@ -22,17 +22,26 @@ import { format } from 'date-fns';
 export default function Dashboard() {
   const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery({
     queryKey: ['products'],
-    queryFn: () => base44.entities.Product.list(),
+    queryFn: async () => {
+      const result = await base44.entities.Product.list();
+      return result || [];
+    },
   });
 
   const { data: recentTransactions = [], isLoading: transactionsLoading, error: transactionsError } = useQuery({
     queryKey: ['transactions', 'recent'],
-    queryFn: () => base44.entities.Transaction.list('-date', 5),
+    queryFn: async () => {
+      const result = await base44.entities.Transaction.list('-date', 5);
+      return result || [];
+    },
   });
 
   const { data: batches = [], isLoading: batchesLoading, error: batchesError } = useQuery({
     queryKey: ['batches', 'expiring'],
-    queryFn: () => base44.entities.Batch.list('expiration_date', 50),
+    queryFn: async () => {
+      const result = await base44.entities.Batch.list('expiration_date', 50);
+      return result || [];
+    },
   });
 
   if (productsLoading || transactionsLoading || batchesLoading) {
