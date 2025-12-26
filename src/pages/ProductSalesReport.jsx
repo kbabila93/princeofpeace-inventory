@@ -101,6 +101,15 @@ export default function ProductSalesReport() {
   const totalQuantity = filteredProducts.reduce((sum, p) => sum + (p.totalQuantity || 0), 0);
   const currency = filteredProducts[0]?.currency || productSalesData[0]?.currency || 'USD';
 
+  // Market Performance Metrics
+  const topPerformers = [...filteredProducts].sort((a, b) => b.totalRevenue - a.totalRevenue).slice(0, 5);
+  const worstPerformers = [...filteredProducts].sort((a, b) => a.totalRevenue - b.totalRevenue).slice(0, 5);
+  const highestProfitMargin = [...filteredProducts].sort((a, b) => {
+    const marginA = a.totalRevenue > 0 ? (a.totalProfit / a.totalRevenue) * 100 : 0;
+    const marginB = b.totalRevenue > 0 ? (b.totalProfit / b.totalRevenue) * 100 : 0;
+    return marginB - marginA;
+  }).slice(0, 5);
+
   const handleExportPDF = () => {
     const doc = new jsPDF();
 
@@ -199,9 +208,87 @@ export default function ProductSalesReport() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
 
-      <Card>
+        <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Market Performance Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <h3 className="font-semibold text-sm text-gray-700 mb-3 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+                Top 5 Best Sellers (Revenue)
+              </h3>
+              <div className="space-y-2">
+                {topPerformers.map((product, idx) => (
+                  <div key={product.productId} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-green-700 bg-green-200 w-5 h-5 rounded-full flex items-center justify-center">
+                        {idx + 1}
+                      </span>
+                      <span className="text-sm font-medium text-gray-900 truncate">{product.name}</span>
+                    </div>
+                    <span className="text-xs font-semibold text-green-700">
+                      {product.currency} {product.totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-sm text-gray-700 mb-3 flex items-center gap-2">
+                <Package className="w-4 h-4 text-red-600" />
+                Bottom 5 Performers
+              </h3>
+              <div className="space-y-2">
+                {worstPerformers.map((product, idx) => (
+                  <div key={product.productId} className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-red-700 bg-red-200 w-5 h-5 rounded-full flex items-center justify-center">
+                        {idx + 1}
+                      </span>
+                      <span className="text-sm font-medium text-gray-900 truncate">{product.name}</span>
+                    </div>
+                    <span className="text-xs font-semibold text-red-700">
+                      {product.currency} {product.totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-sm text-gray-700 mb-3 flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-purple-600" />
+                Top 5 Profit Margins
+              </h3>
+              <div className="space-y-2">
+                {highestProfitMargin.map((product, idx) => {
+                  const margin = product.totalRevenue > 0 ? (product.totalProfit / product.totalRevenue) * 100 : 0;
+                  return (
+                    <div key={product.productId} className="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-purple-700 bg-purple-200 w-5 h-5 rounded-full flex items-center justify-center">
+                          {idx + 1}
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 truncate">{product.name}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-purple-700">
+                        {margin.toFixed(1)}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+        </Card>
+
+        <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between gap-4">
             <CardTitle>Sales by Product</CardTitle>
