@@ -145,7 +145,7 @@ export default function BulkEditDialog({ isOpen, onClose, selectedIds, onComplet
                             <Checkbox 
                                 id="check-threshold" 
                                 checked={updates.low_stock_threshold.enabled}
-                                onCheckedChange={() => handleToggle('threshold')}
+                                onCheckedChange={() => handleToggle('low_stock_threshold')}
                                 className="mt-3"
                             />
                             <div className="flex-1 space-y-2">
