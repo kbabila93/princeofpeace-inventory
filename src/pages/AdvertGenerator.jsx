@@ -19,6 +19,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,6 +34,8 @@ export default function AdvertGenerator() {
   const [platform, setPlatform] = useState("instagram");
   const [tone, setTone] = useState("exciting");
   const [activeTab, setActiveTab] = useState("create");
+  const [storeLocation, setStoreLocation] = useState("");
+  const [contactInfo, setContactInfo] = useState("");
   
   const [generatedContent, setGeneratedContent] = useState(null);
   
@@ -87,7 +90,10 @@ export default function AdvertGenerator() {
       Price: ${selectedProduct.currency} ${selectedProduct.price}.
       Platform: ${platform}.
       Tone: ${tone}.
+      ${storeLocation ? `Store Location: ${storeLocation}.` : ''}
+      ${contactInfo ? `Contact: ${contactInfo}.` : ''}
       Include engaging emojis and hashtags. 
+      ${storeLocation || contactInfo ? 'Include store location and contact information at the end.' : ''}
       Return ONLY the text content.`;
 
       // Execute generations in parallel
@@ -237,6 +243,24 @@ export default function AdvertGenerator() {
                   <SelectItem value="friendly">Friendly & Casual</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Store Location (Optional)</Label>
+              <Input
+                placeholder="123 Main St, City"
+                value={storeLocation}
+                onChange={(e) => setStoreLocation(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Contact Info (Optional)</Label>
+              <Input
+                placeholder="Phone or email"
+                value={contactInfo}
+                onChange={(e) => setContactInfo(e.target.value)}
+              />
             </div>
 
             <Button 
