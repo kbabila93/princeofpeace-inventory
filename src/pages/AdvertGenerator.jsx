@@ -47,6 +47,7 @@ export default function AdvertGenerator() {
   const [removeBackground, setRemoveBackground] = useState(false);
   const [upscaleImage, setUpscaleImage] = useState(false);
   const [applyFilters, setApplyFilters] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
   
   const [generatedContent, setGeneratedContent] = useState(null);
   const [isSavingInfo, setIsSavingInfo] = useState(false);
@@ -82,6 +83,10 @@ export default function AdvertGenerator() {
   });
 
   const selectedProduct = products.find(p => p.id === selectedProductId);
+
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(productSearch.toLowerCase())
+  );
 
   const saveAdvertMutation = useMutation({
     mutationFn: async () => {
@@ -314,14 +319,24 @@ export default function AdvertGenerator() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Select Product</Label>
+              <Input
+                placeholder="Search products..."
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                className="mb-2"
+              />
               <Select value={selectedProductId} onValueChange={setSelectedProductId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a product..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {products.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
+                  {filteredProducts.length === 0 ? (
+                    <div className="p-2 text-sm text-gray-500 text-center">No products found</div>
+                  ) : (
+                    filteredProducts.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
