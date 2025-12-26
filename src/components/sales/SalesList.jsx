@@ -227,36 +227,34 @@ export default function SalesList({ sales, isLoading, groupBy = 'date', products
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <div className="flex items-center gap-1">
-                                    {(() => {
-                                        const items = JSON.parse(sale.items_json || "[]");
-                                        const displayItems = items.slice(0, 3);
-                                        return (
-                                            <>
-                                                {displayItems.map((item, idx) => {
-                                                    const product = products.find(p => p.id === item.product_id);
-                                                    return (
-                                                        <div 
-                                                            key={idx}
-                                                            className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0"
-                                                            title={item.name}
-                                                        >
-                                                            {product?.image_url ? (
-                                                                <img src={product.image_url} alt="" className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <span className="text-[10px] font-bold text-gray-400">
-                                                                    {item.name.substring(0, 2).toUpperCase()}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                                {items.length > 3 && (
-                                                    <span className="text-xs text-gray-400 ml-1">+{items.length - 3}</span>
-                                                )}
-                                            </>
-                                        );
-                                    })()}
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center -space-x-2">
+                                        {(() => {
+                                            const items = JSON.parse(sale.items_json || "[]");
+                                            const displayItems = items.slice(0, 3);
+                                            return displayItems.map((item, idx) => {
+                                                const product = products.find(p => p.id === item.product_id);
+                                                return (
+                                                    <div 
+                                                        key={idx}
+                                                        className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white"
+                                                        title={item.name}
+                                                    >
+                                                        {product?.image_url ? (
+                                                            <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <span className="text-[10px] font-bold text-gray-400">
+                                                                {item.name.substring(0, 2).toUpperCase()}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            });
+                                        })()}
+                                    </div>
+                                    <span className="text-sm text-gray-600 line-clamp-1">
+                                        {sale.items_summary || "No items details"}
+                                    </span>
                                 </div>
                             </TableCell>
                             <TableCell>
