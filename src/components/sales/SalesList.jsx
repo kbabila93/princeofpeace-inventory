@@ -151,7 +151,7 @@ export default function SalesList({ sales, isLoading, groupBy = 'date', products
             const sections = new Set();
 
             items.forEach(item => {
-                const product = products.find(p => p.id === item.productId);
+                const product = products.find(p => p.id === item.product_id);
                 const section = product?.section || "Main";
                 sections.add(section);
             });
