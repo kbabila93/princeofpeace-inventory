@@ -61,7 +61,7 @@ export default function BulkEditDialog({ isOpen, onClose, selectedIds, onComplet
         },
         onError: (e) => {
             console.error(e);
-            toast.error("Failed to update products");
+            toast.error(`Failed to update products: ${e.message || 'Unknown error'}`);
         }
     });
 
