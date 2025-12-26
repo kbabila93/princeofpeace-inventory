@@ -85,6 +85,11 @@ export default function Inventory() {
 
   const queryClient = useQueryClient();
 
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => base44.entities.Product.list(),
+  });
+
   // Global scanner listener
   useBarcodeScanner({
     onScan: (code) => {
@@ -101,11 +106,6 @@ export default function Inventory() {
         toast.info("Product not found. Create it?");
       }
     }
-  });
-
-  const { data: products = [], isLoading } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => base44.entities.Product.list(),
   });
 
   const { data: user } = useQuery({
