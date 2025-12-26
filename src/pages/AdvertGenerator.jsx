@@ -38,6 +38,7 @@ export default function AdvertGenerator() {
   const [contactInfo, setContactInfo] = useState("");
   const [customBackground, setCustomBackground] = useState("");
   const [useCustomBackground, setUseCustomBackground] = useState(false);
+  const [useOriginalImage, setUseOriginalImage] = useState(true);
   
   const [generatedContent, setGeneratedContent] = useState(null);
   const [isSavingInfo, setIsSavingInfo] = useState(false);
@@ -136,7 +137,10 @@ export default function AdvertGenerator() {
       // 2. Get Image (Use product image if available, otherwise generate)
       let imagePromise;
 
-      if (useCustomBackground && customBackground) {
+      if (useOriginalImage && selectedProduct.image_url) {
+        // Use the actual product image
+        imagePromise = Promise.resolve({ url: selectedProduct.image_url });
+      } else if (useCustomBackground && customBackground) {
         // Generate with custom background description
         const imagePrompt = `Professional product photography of ${selectedProduct.name}, ${customBackground}, 
         advertising style, high quality, 4k, cinematic lighting, trendy, appealing for ${platform} social media.`;
@@ -321,17 +325,33 @@ export default function AdvertGenerator() {
 
             <div className="space-y-3 pt-2 border-t">
               <div className="flex items-center justify-between">
-                <Label>Custom Background</Label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={useCustomBackground}
-                    onChange={(e) => setUseCustomBackground(e.target.checked)}
-                    className="rounded"
-                  />
-                  <span className="text-sm text-gray-600">Enable</span>
-                </label>
+                <Label>Image Settings</Label>
               </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useOriginalImage}
+                  onChange={(e) => {
+                    setUseOriginalImage(e.target.checked);
+                    if (e.target.checked) setUseCustomBackground(false);
+                  }}
+                  className="rounded"
+                  disabled={!selectedProduct?.image_url}
+                />
+                <span className="text-sm text-gray-600">Use original product image</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useCustomBackground}
+                  onChange={(e) => {
+                    setUseCustomBackground(e.target.checked);
+                    if (e.target.checked) setUseOriginalImage(false);
+                  }}
+                  className="rounded"
+                />
+                <span className="text-sm text-gray-600">Generate with custom background</span>
+              </label>
               {useCustomBackground && (
                 <Textarea
                   placeholder="Describe the background... (e.g., 'modern studio with soft lighting', 'outdoor nature scene', 'minimalist white background')"
