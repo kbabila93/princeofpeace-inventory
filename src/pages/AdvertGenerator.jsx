@@ -40,6 +40,7 @@ export default function AdvertGenerator() {
   const [useCustomBackground, setUseCustomBackground] = useState(false);
   
   const [generatedContent, setGeneratedContent] = useState(null);
+  const [isSavingInfo, setIsSavingInfo] = useState(false);
   
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
@@ -96,6 +97,22 @@ export default function AdvertGenerator() {
       queryClient.invalidateQueries({ queryKey: ['adverts'] });
     }
   });
+
+  const handleSaveStoreInfo = async () => {
+    setIsSavingInfo(true);
+    try {
+      await base44.auth.updateMe({
+        store_location: storeLocation,
+        store_contact: contactInfo
+      });
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+      toast.success('Store information saved');
+    } catch (error) {
+      toast.error('Failed to save store information');
+    } finally {
+      setIsSavingInfo(false);
+    }
+  };
 
   const generateAdMutation = useMutation({
     mutationFn: async () => {
