@@ -335,7 +335,7 @@ export default function AdvertGenerator() {
                   className="rounded"
                   disabled={!selectedProduct?.image_url}
                 />
-                <span className="text-sm text-gray-600">Use product image as reference</span>
+                <span className="text-sm text-gray-600">Use actual product image</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
