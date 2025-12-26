@@ -256,6 +256,12 @@ export default function Inventory() {
     const safeSku = sku.replace(/"/g, '\\"');
     const logoUrl = user?.store_logo || '';
     
+    console.log('Logo URL:', logoUrl); // Debug
+    
+    if (!logoUrl) {
+      toast.info("No logo set. You can upload one in the Marketing page.");
+    }
+    
     // CSS to match selected dimensions
     const widthStyle = `${printerSettings.width}${printerSettings.unit}`;
     const heightStyle = `${printerSettings.height}${printerSettings.unit}`;
