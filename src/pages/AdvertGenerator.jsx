@@ -36,6 +36,8 @@ export default function AdvertGenerator() {
   const [activeTab, setActiveTab] = useState("create");
   const [storeLocation, setStoreLocation] = useState("");
   const [contactInfo, setContactInfo] = useState("");
+  const [customBackground, setCustomBackground] = useState("");
+  const [useCustomBackground, setUseCustomBackground] = useState(false);
   
   const [generatedContent, setGeneratedContent] = useState(null);
   
@@ -102,7 +104,17 @@ export default function AdvertGenerator() {
       // 2. Get Image (Use product image if available, otherwise generate)
       let imagePromise;
 
-      if (selectedProduct.image_url) {
+      if (useCustomBackground && customBackground) {
+        // Generate with custom background description
+        const imagePrompt = `Professional product photography of ${selectedProduct.name}, ${customBackground}, 
+        advertising style, high quality, 4k, cinematic lighting, trendy, appealing for ${platform} social media.`;
+        
+        const existingImages = selectedProduct.image_url ? [selectedProduct.image_url] : [];
+        imagePromise = base44.integrations.Core.GenerateImage({ 
+          prompt: imagePrompt,
+          existing_image_urls: existingImages
+        });
+      } else if (selectedProduct.image_url) {
         imagePromise = Promise.resolve({ url: selectedProduct.image_url });
       } else {
         const imagePrompt = `Professional product photography of ${selectedProduct.name}, ${selectedProduct.description}, 
@@ -261,6 +273,30 @@ export default function AdvertGenerator() {
                 value={contactInfo}
                 onChange={(e) => setContactInfo(e.target.value)}
               />
+            </div>
+
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label>Custom Background</Label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useCustomBackground}
+                    onChange={(e) => setUseCustomBackground(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm text-gray-600">Enable</span>
+                </label>
+              </div>
+              {useCustomBackground && (
+                <Textarea
+                  placeholder="Describe the background... (e.g., 'modern studio with soft lighting', 'outdoor nature scene', 'minimalist white background')"
+                  value={customBackground}
+                  onChange={(e) => setCustomBackground(e.target.value)}
+                  rows={3}
+                  className="text-sm"
+                />
+              )}
             </div>
 
             <Button 
