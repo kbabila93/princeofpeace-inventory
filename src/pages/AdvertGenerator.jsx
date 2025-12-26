@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -45,6 +45,21 @@ export default function AdvertGenerator() {
     queryKey: ['products'],
     queryFn: () => base44.entities.Product.list(),
   });
+
+  const { data: user } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  // Load saved store info from user profile
+  useEffect(() => {
+    if (user?.store_location) {
+      setStoreLocation(user.store_location);
+    }
+    if (user?.store_contact) {
+      setContactInfo(user.store_contact);
+    }
+  }, [user]);
 
   const { data: adverts = [] } = useQuery({
     queryKey: ['adverts'],
@@ -258,7 +273,19 @@ export default function AdvertGenerator() {
             </div>
 
             <div className="space-y-2">
-              <Label>Store Location (Optional)</Label>
+              <Label className="flex items-center justify-between">
+                <span>Store Location (Optional)</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSaveStoreInfo}
+                  disabled={isSavingInfo || (!storeLocation && !contactInfo)}
+                  className="h-auto py-1 text-xs"
+                >
+                  {isSavingInfo ? 'Saving...' : 'Save Info'}
+                </Button>
+              </Label>
               <Input
                 placeholder="123 Main St, City"
                 value={storeLocation}
