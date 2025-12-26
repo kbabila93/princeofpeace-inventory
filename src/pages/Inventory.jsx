@@ -336,31 +336,50 @@ export default function Inventory() {
             <div class="price">${product.currency || '$'} ${Number(product.price).toFixed(2)}</div>
           </div>
           <script>
-            try {
-              JsBarcode("#barcode", "${safeSku}", {
-                format: "CODE128",
-                width: 2,
-                height: 40,
-                displayValue: true,
-                margin: 0,
-                fontSize: 10
-              });
-              
-              // Wait for logo to load before printing
-              const logo = document.querySelector('.logo');
-              if (logo) {
-                logo.onload = () => {
-                  setTimeout(() => window.print(), 300);
-                };
-                logo.onerror = () => {
-                  setTimeout(() => window.print(), 300);
-                };
-              } else {
-                setTimeout(() => window.print(), 300);
+            window.onload = function() {
+              try {
+                JsBarcode("#barcode", "${safeSku}", {
+                  format: "CODE128",
+                  width: 2,
+                  height: 40,
+                  displayValue: true,
+                  margin: 0,
+                  fontSize: 10
+                });
+                
+                // Wait for all images to load
+                const images = document.querySelectorAll('img');
+                if (images.length > 0) {
+                  let loadedCount = 0;
+                  images.forEach(img => {
+                    if (img.complete) {
+                      loadedCount++;
+                    } else {
+                      img.onload = () => {
+                        loadedCount++;
+                        if (loadedCount === images.length) {
+                          setTimeout(() => window.print(), 500);
+                        }
+                      };
+                      img.onerror = () => {
+                        loadedCount++;
+                        if (loadedCount === images.length) {
+                          setTimeout(() => window.print(), 500);
+                        }
+                      };
+                    }
+                  });
+                  if (loadedCount === images.length) {
+                    setTimeout(() => window.print(), 500);
+                  }
+                } else {
+                  setTimeout(() => window.print(), 500);
+                }
+              } catch (e) {
+                console.error(e);
+                setTimeout(() => window.print(), 500);
               }
-            } catch (e) {
-              document.body.innerHTML = '<p style="color:red; text-align:center;">Error</p>';
-            }
+            };
           </script>
         </body>
       </html>
