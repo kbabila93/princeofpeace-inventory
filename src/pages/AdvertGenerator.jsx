@@ -44,6 +44,9 @@ export default function AdvertGenerator() {
   const [useOriginalImage, setUseOriginalImage] = useState(true);
   const [logoUrl, setLogoUrl] = useState("");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [removeBackground, setRemoveBackground] = useState(false);
+  const [upscaleImage, setUpscaleImage] = useState(false);
+  const [applyFilters, setApplyFilters] = useState(false);
   
   const [generatedContent, setGeneratedContent] = useState(null);
   const [isSavingInfo, setIsSavingInfo] = useState(false);
@@ -187,9 +190,28 @@ export default function AdvertGenerator() {
 
       const [textResponse, imageResponse] = await Promise.all([textPromise, imagePromise]);
 
+      // 3. Apply AI Enhancements if requested
+      let finalImageUrl = imageResponse.url;
+
+      if (removeBackground || upscaleImage || applyFilters) {
+        const enhancements = [];
+        if (removeBackground) enhancements.push("clean white background, subject isolated");
+        if (upscaleImage) enhancements.push("ultra high resolution, sharp details, 8k quality");
+        if (applyFilters) enhancements.push("professional color grading, enhanced lighting, vibrant colors");
+
+        const enhancementPrompt = `${selectedProduct.name}, ${enhancements.join(", ")}, professional product photography, studio quality`;
+        
+        const enhancedImage = await base44.integrations.Core.GenerateImage({
+          prompt: enhancementPrompt,
+          existing_image_urls: [imageResponse.url]
+        });
+        
+        finalImageUrl = enhancedImage.url;
+      }
+
       return {
         text: textResponse,
-        imageUrl: imageResponse.url,
+        imageUrl: finalImageUrl,
         productName: selectedProduct.name,
         price: `${selectedProduct.currency} ${selectedProduct.price}`
       };
@@ -418,6 +440,42 @@ export default function AdvertGenerator() {
                   className="text-sm"
                 />
               )}
+            </div>
+
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  AI Enhancements
+                </Label>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={removeBackground}
+                  onChange={(e) => setRemoveBackground(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-sm text-gray-600">Remove background</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={upscaleImage}
+                  onChange={(e) => setUpscaleImage(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-sm text-gray-600">Upscale to high resolution</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={applyFilters}
+                  onChange={(e) => setApplyFilters(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-sm text-gray-600">Apply color enhancements</span>
+              </label>
             </div>
 
             <Button 
