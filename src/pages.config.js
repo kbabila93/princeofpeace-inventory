@@ -1,6 +1,7 @@
 import AdvertGenerator from './pages/AdvertGenerator';
 import Announcements from './pages/Announcements';
 import Customers from './pages/Customers';
+import DamagedInventory from './pages/DamagedInventory';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import Expenditures from './pages/Expenditures';
@@ -14,7 +15,6 @@ import Suppliers from './pages/Suppliers';
 import Transactions from './pages/Transactions';
 import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
-import DamagedInventory from './pages/DamagedInventory';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +22,7 @@ export const PAGES = {
     "AdvertGenerator": AdvertGenerator,
     "Announcements": Announcements,
     "Customers": Customers,
+    "DamagedInventory": DamagedInventory,
     "Dashboard": Dashboard,
     "Employees": Employees,
     "Expenditures": Expenditures,
@@ -35,7 +36,6 @@ export const PAGES = {
     "Transactions": Transactions,
     "Users": Users,
     "VideoConference": VideoConference,
-    "DamagedInventory": DamagedInventory,
 }
 
 export const pagesConfig = {

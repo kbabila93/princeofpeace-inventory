@@ -592,6 +592,10 @@ export default function AdvertGenerator() {
                       </div>
                     </div>
                     <div className="space-y-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-bold text-gray-900">{generatedContent.productName}</h3>
+                        <div className="text-2xl font-bold text-indigo-600">{generatedContent.price}</div>
+                      </div>
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-500 uppercase mb-2">
                         <Share2 className="w-4 h-4" />
                         Caption
