@@ -46,11 +46,13 @@ export default function BulkEditDialog({ isOpen, onClose, selectedIds, onComplet
                 updateData.last_updated_by = user.email;
             }
 
-            // Execute in batches of 10 to avoid overwhelming the server if selecting many
-            const batchSize = 10;
-            for (let i = 0; i < selectedIds.length; i += batchSize) {
-                const batch = selectedIds.slice(i, i + batchSize);
-                await Promise.all(batch.map(id => base44.entities.Product.update(id, updateData)));
+            // Execute updates sequentially with small delay to avoid rate limits
+            for (let i = 0; i < selectedIds.length; i++) {
+                await base44.entities.Product.update(selectedIds[i], updateData);
+                // Small delay every 5 items to avoid rate limiting
+                if ((i + 1) % 5 === 0 && i < selectedIds.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
             }
         },
         onSuccess: () => {
