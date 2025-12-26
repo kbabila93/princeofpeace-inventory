@@ -340,9 +340,18 @@ export default function Inventory() {
                 fontSize: 10
               });
               
-              setTimeout(() => {
-                window.print();
-              }, 500);
+              // Wait for logo to load before printing
+              const logo = document.querySelector('.logo');
+              if (logo) {
+                logo.onload = () => {
+                  setTimeout(() => window.print(), 300);
+                };
+                logo.onerror = () => {
+                  setTimeout(() => window.print(), 300);
+                };
+              } else {
+                setTimeout(() => window.print(), 300);
+              }
             } catch (e) {
               document.body.innerHTML = '<p style="color:red; text-align:center;">Error</p>';
             }
