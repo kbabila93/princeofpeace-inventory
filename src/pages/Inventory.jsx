@@ -16,7 +16,9 @@ import {
   Settings,
   QrCode,
   ArrowDownAZ,
-  ArrowUpZA
+  ArrowUpZA,
+  Calendar,
+  X as XIcon
   } from 'lucide-react';
   import { jsPDF } from "jspdf";
   import { Button } from "@/components/ui/button";
@@ -66,6 +68,8 @@ export default function Inventory() {
   const [sectionFilter, setSectionFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -143,7 +147,23 @@ export default function Inventory() {
         matchesStatus = (product.quantity || 0) === 0;
       }
 
-      return matchesSearch && matchesCategory && matchesSection && matchesStatus;
+      // Date filtering
+      let matchesDate = true;
+      if (startDate || endDate) {
+        const productDate = new Date(product.created_date);
+        if (startDate) {
+          const start = new Date(startDate);
+          start.setHours(0, 0, 0, 0);
+          matchesDate = matchesDate && productDate >= start;
+        }
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          matchesDate = matchesDate && productDate <= end;
+        }
+      }
+
+      return matchesSearch && matchesCategory && matchesSection && matchesStatus && matchesDate;
     }).sort((a, b) => {
       const nameA = (a.name || "").toLowerCase();
       const nameB = (b.name || "").toLowerCase();
@@ -153,7 +173,7 @@ export default function Inventory() {
         return nameB.localeCompare(nameA);
       }
     });
-  }, [products, search, categoryFilter, sectionFilter, statusFilter, sortOrder]);
+  }, [products, search, categoryFilter, sectionFilter, statusFilter, sortOrder, startDate, endDate]);
 
   // Group products by first letter
   const groupedProducts = React.useMemo(() => {
@@ -595,7 +615,38 @@ export default function Inventory() {
               <SelectItem value="out_of_stock">Out of Stock</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <Input 
+              type="date" 
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              placeholder="From date"
+              className="w-[150px]"
+            />
+            <span className="text-gray-400">to</span>
+            <Input 
+              type="date" 
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              placeholder="To date"
+              className="w-[150px]"
+            />
+            {(startDate || endDate) && (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => {
+                  setStartDate("");
+                  setEndDate("");
+                }}
+                title="Clear dates"
+              >
+                <XIcon className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+          </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
