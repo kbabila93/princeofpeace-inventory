@@ -410,6 +410,20 @@ export default function AdvertGenerator() {
                   </TabsTrigger>
                 </TabsList>
                 <div className="flex gap-2 flex-wrap">
+                  {!isEditingContent ? (
+                    <Button variant="outline" size="sm" onClick={() => setIsEditingContent(true)}>
+                      <Edit className="w-4 h-4 mr-2" /> Edit Caption
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+                        <XIcon className="w-4 h-4 mr-2" /> Cancel
+                      </Button>
+                      <Button variant="default" size="sm" onClick={handleSaveEdit}>
+                        <Check className="w-4 h-4 mr-2" /> Save Changes
+                      </Button>
+                    </>
+                  )}
                   <Button variant="outline" size="sm" onClick={() => saveAdvertMutation.mutate()} disabled={saveAdvertMutation.isPending}>
                     {saveAdvertMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                     Save
@@ -448,25 +462,9 @@ export default function AdvertGenerator() {
                       </div>
                     </div>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm font-medium text-gray-500 uppercase">
-                          <Share2 className="w-4 h-4" />
-                          Caption
-                        </div>
-                        {!isEditingContent ? (
-                          <Button variant="ghost" size="sm" onClick={() => setIsEditingContent(true)}>
-                            <Edit className="w-4 h-4 mr-2" /> Edit
-                          </Button>
-                        ) : (
-                          <div className="flex gap-2">
-                            <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
-                              <XIcon className="w-4 h-4 mr-2" /> Cancel
-                            </Button>
-                            <Button variant="default" size="sm" onClick={handleSaveEdit}>
-                              <Check className="w-4 h-4 mr-2" /> Save
-                            </Button>
-                          </div>
-                        )}
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-500 uppercase mb-2">
+                        <Share2 className="w-4 h-4" />
+                        Caption
                       </div>
                       {isEditingContent ? (
                         <Textarea
