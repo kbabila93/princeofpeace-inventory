@@ -8,7 +8,8 @@ import {
   DollarSign, 
   ArrowRight,
   History,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import StatsCard from '@/components/dashboard/StatsCard';
@@ -19,20 +20,28 @@ import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 
 export default function Dashboard() {
-  const { data: products = [] } = useQuery({
+  const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ['products'],
     queryFn: () => base44.entities.Product.list(),
   });
 
-  const { data: recentTransactions = [] } = useQuery({
+  const { data: recentTransactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions', 'recent'],
     queryFn: () => base44.entities.Transaction.list('-date', 5),
   });
 
-  const { data: batches = [] } = useQuery({
+  const { data: batches = [], isLoading: batchesLoading } = useQuery({
     queryKey: ['batches', 'expiring'],
     queryFn: () => base44.entities.Batch.list('expiration_date', 50), // Get 50 batches sorted by expiration date (ascending)
   });
+
+  if (productsLoading || transactionsLoading || batchesLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   // Calculate stats
   const totalProducts = products.length;
