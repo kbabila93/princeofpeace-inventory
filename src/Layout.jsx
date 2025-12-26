@@ -30,11 +30,13 @@ import UserPresence from '@/components/UserPresence';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { Toaster } from "sonner";
 import { base44 } from "@/api/base44Client";
+import UserSettingsDialog from '@/components/settings/UserSettingsDialog';
 
 export default function Layout({ children, currentPageName }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -161,7 +163,15 @@ export default function Layout({ children, currentPageName }) {
                 <p className="text-sm font-semibold text-slate-900 truncate">{user?.full_name || 'User'}</p>
                 <p className="text-xs text-slate-500 truncate">{user?.email || 'Loading...'}</p>
               </div>
-            </div>
+              </div>
+              <Button 
+              variant="ghost" 
+              className="w-full justify-start text-gray-600 hover:text-indigo-700 hover:bg-indigo-50 mb-1"
+              onClick={() => setIsSettingsOpen(true)}
+              >
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+              </Button>
             <Button 
               variant="ghost" 
               className="w-full justify-start text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 mb-1"
@@ -228,7 +238,8 @@ export default function Layout({ children, currentPageName }) {
       <TeamChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       <UserPresence />
       <PWAInstallPrompt />
+      <UserSettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} user={user} />
       <Toaster />
-    </div>
-  );
-}
+      </div>
+      );
+      }
