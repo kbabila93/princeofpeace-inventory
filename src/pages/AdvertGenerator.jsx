@@ -134,22 +134,22 @@ export default function AdvertGenerator() {
       // Execute generations in parallel
       const textPromise = base44.integrations.Core.InvokeLLM({ prompt });
       
-      // 2. Get Image (Use product image if available, otherwise generate)
+      // 2. Get Image
       let imagePromise;
 
-      if (useOriginalImage && selectedProduct.image_url) {
-        // Use the actual product image
-        imagePromise = Promise.resolve({ url: selectedProduct.image_url });
-      } else if (useCustomBackground && customBackground) {
-        // Generate with custom background description
+      if (useCustomBackground && customBackground) {
+        // Generate with custom background
         const imagePrompt = `Professional product photography of ${selectedProduct.name}, ${customBackground}, 
         advertising style, high quality, 4k, cinematic lighting, trendy, appealing for ${platform} social media.`;
         
-        const existingImages = selectedProduct.image_url ? [selectedProduct.image_url] : [];
+        const existingImages = (useOriginalImage && selectedProduct.image_url) ? [selectedProduct.image_url] : [];
         imagePromise = base44.integrations.Core.GenerateImage({ 
           prompt: imagePrompt,
           existing_image_urls: existingImages
         });
+      } else if (useOriginalImage && selectedProduct.image_url) {
+        // Use the actual product image as-is
+        imagePromise = Promise.resolve({ url: selectedProduct.image_url });
       } else if (selectedProduct.image_url) {
         imagePromise = Promise.resolve({ url: selectedProduct.image_url });
       } else {
@@ -331,26 +331,20 @@ export default function AdvertGenerator() {
                 <input
                   type="checkbox"
                   checked={useOriginalImage}
-                  onChange={(e) => {
-                    setUseOriginalImage(e.target.checked);
-                    if (e.target.checked) setUseCustomBackground(false);
-                  }}
+                  onChange={(e) => setUseOriginalImage(e.target.checked)}
                   className="rounded"
                   disabled={!selectedProduct?.image_url}
                 />
-                <span className="text-sm text-gray-600">Use original product image</span>
+                <span className="text-sm text-gray-600">Use product image as reference</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={useCustomBackground}
-                  onChange={(e) => {
-                    setUseCustomBackground(e.target.checked);
-                    if (e.target.checked) setUseOriginalImage(false);
-                  }}
+                  onChange={(e) => setUseCustomBackground(e.target.checked)}
                   className="rounded"
                 />
-                <span className="text-sm text-gray-600">Generate with custom background</span>
+                <span className="text-sm text-gray-600">Apply custom background</span>
               </label>
               {useCustomBackground && (
                 <Textarea
