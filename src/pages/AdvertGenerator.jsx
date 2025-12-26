@@ -9,6 +9,9 @@ import {
   Share2,
   Copy,
   Sparkles,
+  Edit,
+  Check,
+  X as XIcon,
   Save,
   History,
   Trash2,
@@ -42,6 +45,8 @@ export default function AdvertGenerator() {
   
   const [generatedContent, setGeneratedContent] = useState(null);
   const [isSavingInfo, setIsSavingInfo] = useState(false);
+  const [isEditingContent, setIsEditingContent] = useState(false);
+  const [editedText, setEditedText] = useState("");
   
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
@@ -170,6 +175,8 @@ export default function AdvertGenerator() {
     },
     onSuccess: (data) => {
       setGeneratedContent(data);
+      setEditedText(data.text);
+      setIsEditingContent(false);
       toast.success("Advert generated successfully!");
     },
     onError: (error) => {
@@ -178,10 +185,22 @@ export default function AdvertGenerator() {
   });
 
   const handleCopy = () => {
-    if (generatedContent?.text) {
-      navigator.clipboard.writeText(generatedContent.text);
+    const textToCopy = isEditingContent ? editedText : generatedContent?.text;
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy);
       toast.success("Caption copied to clipboard");
     }
+  };
+
+  const handleSaveEdit = () => {
+    setGeneratedContent({ ...generatedContent, text: editedText });
+    setIsEditingContent(false);
+    toast.success("Content updated");
+  };
+
+  const handleCancelEdit = () => {
+    setEditedText(generatedContent.text);
+    setIsEditingContent(false);
   };
 
   const handleShareToSocial = (platform) => {
@@ -429,13 +448,37 @@ export default function AdvertGenerator() {
                       </div>
                     </div>
                     <div className="space-y-4">
-                      <div className="flex items-center gap-2 text-sm font-medium text-gray-500 uppercase">
-                        <Share2 className="w-4 h-4" />
-                        Preview
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm font-medium text-gray-500 uppercase">
+                          <Share2 className="w-4 h-4" />
+                          Caption
+                        </div>
+                        {!isEditingContent ? (
+                          <Button variant="ghost" size="sm" onClick={() => setIsEditingContent(true)}>
+                            <Edit className="w-4 h-4 mr-2" /> Edit
+                          </Button>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+                              <XIcon className="w-4 h-4 mr-2" /> Cancel
+                            </Button>
+                            <Button variant="default" size="sm" onClick={handleSaveEdit}>
+                              <Check className="w-4 h-4 mr-2" /> Save
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      <div className="p-4 bg-gray-50 rounded-lg whitespace-pre-wrap text-sm border">
-                        {generatedContent.text}
-                      </div>
+                      {isEditingContent ? (
+                        <Textarea
+                          value={editedText}
+                          onChange={(e) => setEditedText(e.target.value)}
+                          className="min-h-[200px] text-sm"
+                        />
+                      ) : (
+                        <div className="p-4 bg-gray-50 rounded-lg whitespace-pre-wrap text-sm border">
+                          {generatedContent.text}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
