@@ -29,7 +29,7 @@ export default function SalesPage() {
     // Fetch sales for stats
     const { data: sales = [], isLoading } = useQuery({
         queryKey: ['sales'],
-        queryFn: () => base44.entities.Sale.list('-date', 50),
+        queryFn: () => base44.entities.Sale.list('-date', 10000),
     });
 
     // Fetch products to get section information
