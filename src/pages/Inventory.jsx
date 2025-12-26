@@ -254,6 +254,7 @@ export default function Inventory() {
 
     const safeName = product.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const safeSku = sku.replace(/"/g, '\\"');
+    const logoUrl = user?.store_logo || '';
     
     // CSS to match selected dimensions
     const widthStyle = `${printerSettings.width}${printerSettings.unit}`;
@@ -290,6 +291,15 @@ export default function Inventory() {
               flex-direction: column;
               justify-content: center;
               align-items: center;
+              position: relative;
+            }
+            .logo {
+              position: absolute;
+              top: 2px;
+              right: 2px;
+              width: 20px;
+              height: 20px;
+              object-fit: contain;
             }
             #barcode { 
               width: 100%; 
@@ -314,6 +324,7 @@ export default function Inventory() {
         </head>
         <body>
           <div class="label-content">
+            ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="logo" />` : ''}
             <div class="product-name">${safeName}</div>
             <svg id="barcode"></svg>
             <div class="price">${product.currency || '$'} ${Number(product.price).toFixed(2)}</div>
