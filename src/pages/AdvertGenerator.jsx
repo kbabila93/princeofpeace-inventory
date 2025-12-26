@@ -581,8 +581,9 @@ export default function AdvertGenerator() {
                         className="w-full h-auto object-cover"
                       />
                       {logoUrl && (
-                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-lg">
+                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg flex items-center gap-3">
                           <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />
+                          <div className="text-2xl font-bold text-indigo-600">{generatedContent.price}</div>
                         </div>
                       )}
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -634,8 +635,9 @@ export default function AdvertGenerator() {
                         </motion.div>
                         
                         {logoUrl && (
-                          <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-lg">
+                          <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg flex items-center gap-2">
                             <img src={logoUrl} alt="Logo" className="w-12 h-12 object-contain" />
+                            <div className="text-lg font-bold text-indigo-600">{generatedContent.price}</div>
                           </div>
                         )}
                         
