@@ -45,15 +45,21 @@ export default function Dashboard() {
     },
   });
 
+  console.log('Loading states:', { productsLoading, transactionsLoading, batchesLoading });
+  console.log('Errors:', { productsError, transactionsError, batchesError });
+  console.log('Data:', { products: products?.length, transactions: recentTransactions?.length, batches: batches?.length });
+
   if (productsLoading || transactionsLoading || batchesLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <p className="ml-2">Loading dashboard...</p>
       </div>
     );
   }
 
   if (productsError || transactionsError || batchesError) {
+    console.error('Dashboard errors:', { productsError, transactionsError, batchesError });
     return (
       <div className="flex flex-col items-center justify-center h-96 text-red-600">
         <AlertTriangle className="w-12 h-12 mb-4" />
