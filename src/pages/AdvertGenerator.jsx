@@ -54,12 +54,12 @@ export default function AdvertGenerator() {
   const [isEditingContent, setIsEditingContent] = useState(false);
   const [editedText, setEditedText] = useState("");
   
-  const { data: products = [] } = useQuery({
+  const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ['products'],
     queryFn: () => base44.entities.Product.list(),
   });
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['me'],
     queryFn: () => base44.auth.me(),
   });
@@ -287,6 +287,14 @@ export default function AdvertGenerator() {
   };
 
 
+
+  if (productsLoading || userLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
