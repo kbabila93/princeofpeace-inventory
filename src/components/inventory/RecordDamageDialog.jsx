@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, Upload, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export default function RecordDamageDialog({ isOpen, onClose, user }) {
@@ -17,6 +17,9 @@ export default function RecordDamageDialog({ isOpen, onClose, user }) {
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef(null);
 
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
@@ -78,6 +81,7 @@ export default function RecordDamageDialog({ isOpen, onClose, user }) {
         await base44.entities.Product.update(existing.id, {
           quantity: (existing.quantity || 0) + damageQty,
           description: `${existing.description || ''}\n[${new Date().toLocaleDateString()}] +${damageQty} - ${reason}${notes ? ': ' + notes : ''}`.trim(),
+          image_url: imageUrl || existing.image_url,
           last_updated_by: user?.email
         });
       } else {
@@ -94,7 +98,7 @@ export default function RecordDamageDialog({ isOpen, onClose, user }) {
           currency: selectedProduct.currency,
           quantity: damageQty,
           low_stock_threshold: 0,
-          image_url: selectedProduct.image_url,
+          image_url: imageUrl || selectedProduct.image_url,
           last_updated_by: user?.email
         });
       }
@@ -116,7 +120,26 @@ export default function RecordDamageDialog({ isOpen, onClose, user }) {
     setReason("");
     setNotes("");
     setSearchTerm("");
+    setImageUrl("");
     onClose();
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const response = await base44.integrations.Core.UploadFile({ file });
+      if (response?.file_url) {
+        setImageUrl(response.file_url);
+        toast.success("Image uploaded successfully");
+      }
+    } catch (error) {
+      toast.error("Failed to upload image");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -207,6 +230,63 @@ export default function RecordDamageDialog({ isOpen, onClose, user }) {
               placeholder="Add any additional details..."
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Damage Photo (Optional)</Label>
+            <div className="flex items-start gap-4">
+              {imageUrl ? (
+                <div className="relative w-24 h-24 border rounded-lg overflow-hidden group">
+                  <img 
+                    src={imageUrl} 
+                    alt="Damage preview" 
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setImageUrl("")}
+                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-24 h-24 border-2 border-dashed rounded-lg flex items-center justify-center text-gray-400 bg-gray-50">
+                  <ImageIcon className="w-8 h-8 opacity-50" />
+                </div>
+              )}
+              
+              <div className="flex-1 space-y-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  disabled={isUploading}
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  disabled={isUploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full"
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4 mr-2" />
+                  )}
+                  Upload Photo
+                </Button>
+                <Input
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="Or enter image URL..."
+                  className="text-sm"
+                />
+              </div>
+            </div>
           </div>
 
           <DialogFooter>
