@@ -64,7 +64,9 @@ export default function ProductSalesReport() {
             totalProfit: 0,
             salesCount: 0,
             image_url: product?.image_url || null,
-            currency: sale.currency || 'USD'
+            currency: sale.currency || 'USD',
+            stockLeft: product?.quantity || 0,
+            averagePrice: 0
           };
         }
 
@@ -72,6 +74,7 @@ export default function ProductSalesReport() {
         productMap[item.product_id].totalRevenue += item.price * item.quantity;
         productMap[item.product_id].totalProfit += itemProfit;
         productMap[item.product_id].salesCount += 1;
+        productMap[item.product_id].averagePrice = productMap[item.product_id].totalRevenue / productMap[item.product_id].totalQuantity;
       });
     });
 
@@ -335,10 +338,13 @@ export default function ProductSalesReport() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Product</TableHead>
-                  <TableHead className="text-right">Quantity Sold</TableHead>
+                  <TableHead className="text-right">Stock Left</TableHead>
+                  <TableHead className="text-right">Qty Sold</TableHead>
                   <TableHead className="text-right">Sales Count</TableHead>
+                  <TableHead className="text-right">Avg Price</TableHead>
                   <TableHead className="text-right">Total Revenue</TableHead>
                   <TableHead className="text-right">Total Profit</TableHead>
+                  <TableHead className="text-right">Margin %</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -370,41 +376,65 @@ export default function ProductSalesReport() {
                             </span>
                           </TableCell>
                         </TableRow>
-                        {sectionProducts.map((product) => (
-                          <TableRow key={product.productId}>
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                  {product.image_url ? (
-                                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                                  ) : (
-                                    <span className="text-xs font-bold text-gray-400">
-                                      {product.name.substring(0, 2).toUpperCase()}
-                                    </span>
-                                  )}
+                        {sectionProducts.map((product) => {
+                          const profitMargin = product.totalRevenue > 0 ? (product.totalProfit / product.totalRevenue) * 100 : 0;
+                          const isLowStock = product.stockLeft <= 10;
+                          const isOutOfStock = product.stockLeft === 0;
+
+                          return (
+                            <TableRow key={product.productId}>
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    {product.image_url ? (
+                                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <span className="text-xs font-bold text-gray-400">
+                                        {product.name.substring(0, 2).toUpperCase()}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="font-medium text-gray-900">{product.name}</span>
                                 </div>
-                                <span className="font-medium text-gray-900">{product.name}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right font-medium">{product.totalQuantity}</TableCell>
-                            <TableCell className="text-right text-gray-600">{product.salesCount}</TableCell>
-                            <TableCell className="text-right font-bold text-green-600">
-                              {product.currency} {product.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </TableCell>
-                            <TableCell className="text-right font-bold text-purple-600">
-                              {product.currency} {product.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <span className={`font-semibold ${isOutOfStock ? 'text-red-600' : isLowStock ? 'text-orange-600' : 'text-gray-900'}`}>
+                                  {product.stockLeft}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right font-medium">{product.totalQuantity}</TableCell>
+                              <TableCell className="text-right text-gray-600">{product.salesCount}</TableCell>
+                              <TableCell className="text-right text-gray-700">
+                                {product.currency} {product.averagePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right font-bold text-green-600">
+                                {product.currency} {product.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right font-bold text-purple-600">
+                                {product.currency} {product.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <span className={`font-semibold ${profitMargin >= 50 ? 'text-green-600' : profitMargin >= 30 ? 'text-blue-600' : 'text-gray-600'}`}>
+                                  {profitMargin.toFixed(1)}%
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                         <TableRow className="bg-gray-50 font-semibold">
                           <TableCell className="text-indigo-700">Section Total</TableCell>
+                          <TableCell className="text-right text-indigo-700">{sectionProducts.reduce((sum, p) => sum + p.stockLeft, 0)}</TableCell>
                           <TableCell className="text-right text-indigo-700">{sectionTotalQty}</TableCell>
                           <TableCell className="text-right text-indigo-700">{sectionProducts.reduce((sum, p) => sum + p.salesCount, 0)}</TableCell>
+                          <TableCell className="text-right text-indigo-700">-</TableCell>
                           <TableCell className="text-right text-indigo-700">
                             {currency} {sectionTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </TableCell>
                           <TableCell className="text-right text-indigo-700">
                             {currency} {sectionTotalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell className="text-right text-indigo-700">
+                            {sectionTotalRevenue > 0 ? ((sectionTotalProfit / sectionTotalRevenue) * 100).toFixed(1) : '0.0'}%
                           </TableCell>
                         </TableRow>
                       </React.Fragment>
