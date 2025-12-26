@@ -42,6 +42,8 @@ export default function AdvertGenerator() {
   const [customBackground, setCustomBackground] = useState("");
   const [useCustomBackground, setUseCustomBackground] = useState(false);
   const [useOriginalImage, setUseOriginalImage] = useState(true);
+  const [logoUrl, setLogoUrl] = useState("");
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   
   const [generatedContent, setGeneratedContent] = useState(null);
   const [isSavingInfo, setIsSavingInfo] = useState(false);
@@ -65,6 +67,9 @@ export default function AdvertGenerator() {
     }
     if (user?.store_contact) {
       setContactInfo(user.store_contact);
+    }
+    if (user?.store_logo) {
+      setLogoUrl(user.store_logo);
     }
   }, [user]);
 
@@ -109,7 +114,8 @@ export default function AdvertGenerator() {
     try {
       await base44.auth.updateMe({
         store_location: storeLocation,
-        store_contact: contactInfo
+        store_contact: contactInfo,
+        store_logo: logoUrl
       });
       queryClient.invalidateQueries({ queryKey: ['me'] });
       toast.success('Store information saved');
@@ -117,6 +123,22 @@ export default function AdvertGenerator() {
       toast.error('Failed to save store information');
     } finally {
       setIsSavingInfo(false);
+    }
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingLogo(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setLogoUrl(file_url);
+      toast.success('Logo uploaded successfully');
+    } catch (error) {
+      toast.error('Failed to upload logo');
+    } finally {
+      setIsUploadingLogo(false);
     }
   };
 
@@ -320,7 +342,7 @@ export default function AdvertGenerator() {
                   variant="ghost"
                   size="sm"
                   onClick={handleSaveStoreInfo}
-                  disabled={isSavingInfo || (!storeLocation && !contactInfo)}
+                  disabled={isSavingInfo || (!storeLocation && !contactInfo && !logoUrl)}
                   className="h-auto py-1 text-xs"
                 >
                   {isSavingInfo ? 'Saving...' : 'Save Info'}
@@ -340,6 +362,25 @@ export default function AdvertGenerator() {
                 value={contactInfo}
                 onChange={(e) => setContactInfo(e.target.value)}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Store Logo (Optional)</Label>
+              <div className="flex gap-2 items-center">
+                {logoUrl && (
+                  <img src={logoUrl} alt="Logo" className="w-12 h-12 object-contain border rounded" />
+                )}
+                <div className="flex-1">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    disabled={isUploadingLogo}
+                    className="cursor-pointer"
+                  />
+                </div>
+              </div>
+              {isUploadingLogo && <p className="text-xs text-gray-500">Uploading...</p>}
             </div>
 
             <div className="space-y-3 pt-2 border-t">
@@ -455,6 +496,11 @@ export default function AdvertGenerator() {
                         alt="Generated Ad" 
                         className="w-full h-auto object-cover"
                       />
+                      {logoUrl && (
+                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-lg">
+                          <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />
+                        </div>
+                      )}
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <Button variant="secondary" onClick={() => window.open(generatedContent.imageUrl, '_blank')}>
                           <Download className="w-4 h-4 mr-2" /> Download
@@ -498,6 +544,12 @@ export default function AdvertGenerator() {
                                 className="w-full h-full object-cover opacity-80"
                             />
                         </motion.div>
+                        
+                        {logoUrl && (
+                          <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-lg">
+                            <img src={logoUrl} alt="Logo" className="w-12 h-12 object-contain" />
+                          </div>
+                        )}
                         
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30 flex flex-col justify-end p-6 text-white">
                             <motion.div
