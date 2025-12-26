@@ -12,7 +12,11 @@ import {
   Save,
   History,
   Trash2,
-  Download
+  Download,
+  Facebook,
+  Twitter,
+  Linkedin,
+  MessageCircle
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -123,6 +127,37 @@ export default function AdvertGenerator() {
     if (generatedContent?.text) {
       navigator.clipboard.writeText(generatedContent.text);
       toast.success("Caption copied to clipboard");
+    }
+  };
+
+  const handleShareToSocial = (platform) => {
+    if (!generatedContent) return;
+    
+    const text = generatedContent.text;
+    const imageUrl = generatedContent.imageUrl;
+    
+    let shareUrl = '';
+    
+    switch(platform) {
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(imageUrl)}&quote=${encodeURIComponent(text)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(imageUrl)}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n' + imageUrl)}`;
+        break;
+      default:
+        break;
+    }
+    
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+      toast.success(`Opening ${platform}...`);
     }
   };
 
@@ -237,13 +272,25 @@ export default function AdvertGenerator() {
                     <Video className="w-4 h-4" /> Video Story
                   </TabsTrigger>
                 </TabsList>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" onClick={() => saveAdvertMutation.mutate()} disabled={saveAdvertMutation.isPending}>
                     {saveAdvertMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                     Save
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleCopy}>
                     <Copy className="w-4 h-4 mr-2" /> Copy Caption
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleShareToSocial('facebook')} className="text-blue-600 hover:text-blue-700">
+                    <Facebook className="w-4 h-4 mr-2" /> Facebook
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleShareToSocial('twitter')} className="text-sky-500 hover:text-sky-600">
+                    <Twitter className="w-4 h-4 mr-2" /> Twitter
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleShareToSocial('linkedin')} className="text-blue-700 hover:text-blue-800">
+                    <Linkedin className="w-4 h-4 mr-2" /> LinkedIn
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleShareToSocial('whatsapp')} className="text-green-600 hover:text-green-700">
+                    <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                   </Button>
                 </div>
               </div>
