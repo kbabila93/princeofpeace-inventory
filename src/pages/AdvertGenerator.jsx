@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import html2canvas from "html2canvas";
 
 export default function AdvertGenerator() {
   const queryClient = useQueryClient();
@@ -53,6 +54,7 @@ export default function AdvertGenerator() {
   const [isSavingInfo, setIsSavingInfo] = useState(false);
   const [isEditingContent, setIsEditingContent] = useState(false);
   const [editedText, setEditedText] = useState("");
+  const imagePreviewRef = React.useRef(null);
   
   const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ['products'],
@@ -251,11 +253,35 @@ export default function AdvertGenerator() {
     setIsEditingContent(false);
   };
 
-  const handleShareToSocial = (platform) => {
+  const handleShareToSocial = async (platform) => {
     if (!generatedContent) return;
     
     const text = isEditingContent ? editedText : generatedContent.text;
-    const imageUrl = generatedContent.imageUrl;
+    let imageUrl = generatedContent.imageUrl;
+    
+    // Capture the preview with logo and price for Facebook, LinkedIn
+    if ((platform === 'facebook' || platform === 'linkedin') && imagePreviewRef.current && logoUrl) {
+      try {
+        toast.loading('Preparing image with logo and price...');
+        const canvas = await html2canvas(imagePreviewRef.current, {
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#f3f4f6'
+        });
+        
+        // Convert canvas to blob
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const file = new File([blob], 'advert.png', { type: 'image/png' });
+        
+        // Upload the composed image
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        imageUrl = file_url;
+        toast.dismiss();
+      } catch (error) {
+        console.error('Failed to capture image', error);
+        toast.dismiss();
+      }
+    }
     
     let shareUrl = '';
     
@@ -264,7 +290,6 @@ export default function AdvertGenerator() {
         shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
         break;
       case 'facebook':
-        // Copy caption to clipboard for Facebook
         navigator.clipboard.writeText(text);
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(imageUrl)}`;
         toast.success('Caption copied! Paste it when sharing on Facebook');
@@ -574,7 +599,7 @@ export default function AdvertGenerator() {
               <TabsContent value="image" className="mt-0">
                 <Card>
                   <CardContent className="p-6 grid md:grid-cols-2 gap-6">
-                    <div className="relative group rounded-lg overflow-hidden border bg-gray-100">
+                    <div ref={imagePreviewRef} className="relative group rounded-lg overflow-hidden border bg-gray-100">
                       <img 
                         src={generatedContent.imageUrl} 
                         alt="Generated Ad" 
