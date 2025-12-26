@@ -164,19 +164,18 @@ export default function AdvertGenerator() {
       // 2. Get Image
       let imagePromise;
 
-      if (useCustomBackground && customBackground) {
+      if (useOriginalImage && selectedProduct.image_url) {
+        // Use the actual product image as-is (highest priority)
+        imagePromise = Promise.resolve({ url: selectedProduct.image_url });
+      } else if (useCustomBackground && customBackground) {
         // Generate with custom background
         const imagePrompt = `Professional product photography of ${selectedProduct.name}, ${customBackground}, 
         advertising style, high quality, 4k, cinematic lighting, trendy, appealing for ${platform} social media.`;
         
-        const existingImages = (useOriginalImage && selectedProduct.image_url) ? [selectedProduct.image_url] : [];
         imagePromise = base44.integrations.Core.GenerateImage({ 
           prompt: imagePrompt,
-          existing_image_urls: existingImages
+          existing_image_urls: selectedProduct.image_url ? [selectedProduct.image_url] : []
         });
-      } else if (useOriginalImage && selectedProduct.image_url) {
-        // Use the actual product image as-is
-        imagePromise = Promise.resolve({ url: selectedProduct.image_url });
       } else if (selectedProduct.image_url) {
         imagePromise = Promise.resolve({ url: selectedProduct.image_url });
       } else {
