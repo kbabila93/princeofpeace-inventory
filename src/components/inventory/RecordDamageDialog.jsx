@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, AlertTriangle, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Loader2, AlertTriangle, Upload, X, Image as ImageIcon, Camera } from "lucide-react";
 import { toast } from "sonner";
+import CameraCaptureDialog from './CameraCaptureDialog';
 
 export default function RecordDamageDialog({ isOpen, onClose, user }) {
   const queryClient = useQueryClient();
@@ -19,6 +20,7 @@ export default function RecordDamageDialog({ isOpen, onClose, user }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const fileInputRef = React.useRef(null);
 
   const { data: products = [] } = useQuery({
@@ -124,8 +126,8 @@ export default function RecordDamageDialog({ isOpen, onClose, user }) {
     onClose();
   };
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleFileUpload = async (fileOrEvent) => {
+    const file = fileOrEvent instanceof File ? fileOrEvent : fileOrEvent.target.files[0];
     if (!file) return;
 
     setIsUploading(true);
@@ -265,20 +267,32 @@ export default function RecordDamageDialog({ isOpen, onClose, user }) {
                   onChange={handleFileUpload}
                   disabled={isUploading}
                 />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  disabled={isUploading}
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full"
-                >
-                  {isUploading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4 mr-2" />
-                  )}
-                  Upload Photo
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    disabled={isUploading}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4 mr-2" />
+                    )}
+                    Upload
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    disabled={isUploading}
+                    onClick={() => setIsCameraOpen(true)}
+                    className="flex-1"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Camera
+                  </Button>
+                </div>
                 <Input
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
@@ -304,6 +318,12 @@ export default function RecordDamageDialog({ isOpen, onClose, user }) {
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <CameraCaptureDialog 
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onCapture={handleFileUpload}
+      />
     </Dialog>
   );
 }
