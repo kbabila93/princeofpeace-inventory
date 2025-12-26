@@ -52,11 +52,13 @@ export default function ProductSalesReport() {
         const product = products.find(p => p.id === item.product_id);
         const costPrice = product?.cost_price || 0;
         const itemProfit = (item.price - costPrice) * item.quantity;
+        const section = product?.section || "Main";
 
         if (!productMap[item.product_id]) {
           productMap[item.product_id] = {
             productId: item.product_id,
             name: item.name,
+            section: section,
             totalQuantity: 0,
             totalRevenue: 0,
             totalProfit: 0,
@@ -81,6 +83,18 @@ export default function ProductSalesReport() {
     const search = searchProduct.toLowerCase();
     return productSalesData.filter(p => p.name.toLowerCase().includes(search));
   }, [productSalesData, searchProduct]);
+
+  const groupedBySection = useMemo(() => {
+    const groups = {};
+    filteredProducts.forEach(product => {
+      const section = product.section || "Main";
+      if (!groups[section]) {
+        groups[section] = [];
+      }
+      groups[section].push(product);
+    });
+    return groups;
+  }, [filteredProducts]);
 
   const totalRevenue = filteredProducts.reduce((sum, p) => sum + (p.totalRevenue || 0), 0);
   const totalProfit = filteredProducts.reduce((sum, p) => sum + (p.totalProfit || 0), 0);
@@ -254,32 +268,61 @@ export default function ProductSalesReport() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredProducts.map((product) => (
-                    <TableRow key={product.productId}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                            {product.image_url ? (
-                              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <span className="text-xs font-bold text-gray-400">
-                                {product.name.substring(0, 2).toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          <span className="font-medium text-gray-900">{product.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-medium">{product.totalQuantity}</TableCell>
-                      <TableCell className="text-right text-gray-600">{product.salesCount}</TableCell>
-                      <TableCell className="text-right font-bold text-green-600">
-                        {product.currency} {product.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-purple-600">
-                        {product.currency} {product.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  Object.entries(groupedBySection).sort().map(([section, sectionProducts]) => {
+                    const sectionTotalQty = sectionProducts.reduce((sum, p) => sum + p.totalQuantity, 0);
+                    const sectionTotalRevenue = sectionProducts.reduce((sum, p) => sum + p.totalRevenue, 0);
+                    const sectionTotalProfit = sectionProducts.reduce((sum, p) => sum + p.totalProfit, 0);
+                    
+                    return (
+                      <React.Fragment key={section}>
+                        <TableRow className="bg-indigo-50 hover:bg-indigo-50">
+                          <TableCell colSpan={5} className="font-bold text-indigo-900 text-base py-3">
+                            {section}
+                            <span className="ml-3 text-sm font-normal text-indigo-600">
+                              ({sectionProducts.length} product{sectionProducts.length !== 1 ? 's' : ''})
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                        {sectionProducts.map((product) => (
+                          <TableRow key={product.productId}>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                  {product.image_url ? (
+                                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <span className="text-xs font-bold text-gray-400">
+                                      {product.name.substring(0, 2).toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="font-medium text-gray-900">{product.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-medium">{product.totalQuantity}</TableCell>
+                            <TableCell className="text-right text-gray-600">{product.salesCount}</TableCell>
+                            <TableCell className="text-right font-bold text-green-600">
+                              {product.currency} {product.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-purple-600">
+                              {product.currency} {product.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="bg-gray-50 font-semibold">
+                          <TableCell className="text-indigo-700">Section Total</TableCell>
+                          <TableCell className="text-right text-indigo-700">{sectionTotalQty}</TableCell>
+                          <TableCell className="text-right text-indigo-700">{sectionProducts.reduce((sum, p) => sum + p.salesCount, 0)}</TableCell>
+                          <TableCell className="text-right text-indigo-700">
+                            {currency} {sectionTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell className="text-right text-indigo-700">
+                            {currency} {sectionTotalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </TableCell>
+                        </TableRow>
+                      </React.Fragment>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
