@@ -49,13 +49,13 @@ export default function ProductSalesReport() {
       const items = JSON.parse(sale.items_json || "[]");
       
       items.forEach(item => {
-        const product = products.find(p => p.id === item.productId);
+        const product = products.find(p => p.id === item.product_id);
         const costPrice = product?.cost_price || 0;
         const itemProfit = (item.price - costPrice) * item.quantity;
 
-        if (!productMap[item.productId]) {
-          productMap[item.productId] = {
-            productId: item.productId,
+        if (!productMap[item.product_id]) {
+          productMap[item.product_id] = {
+            productId: item.product_id,
             name: item.name,
             totalQuantity: 0,
             totalRevenue: 0,
@@ -66,10 +66,10 @@ export default function ProductSalesReport() {
           };
         }
 
-        productMap[item.productId].totalQuantity += item.quantity;
-        productMap[item.productId].totalRevenue += item.price * item.quantity;
-        productMap[item.productId].totalProfit += itemProfit;
-        productMap[item.productId].salesCount += 1;
+        productMap[item.product_id].totalQuantity += item.quantity;
+        productMap[item.product_id].totalRevenue += item.price * item.quantity;
+        productMap[item.product_id].totalProfit += itemProfit;
+        productMap[item.product_id].salesCount += 1;
       });
     });
 
