@@ -56,7 +56,7 @@ import ProductDetailsDialog from '@/components/inventory/ProductDetailsDialog';
 import ImagePreviewDialog from '@/components/inventory/ImagePreviewDialog';
 import { useBarcodeScanner } from '../components/hooks/useBarcodeScanner';
 import { toast } from 'sonner';
-import { ScanBarcode, CheckSquare, XSquare, Layers } from 'lucide-react';
+import { ScanBarcode, CheckSquare, XSquare, Layers, Download } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -398,6 +398,74 @@ export default function Inventory() {
     doc.save("inventory-report.pdf");
   };
 
+  const handleExportToShopify = () => {
+    // Shopify CSV format
+    const headers = [
+      'Handle', 'Title', 'Body (HTML)', 'Vendor', 'Type', 'Tags',
+      'Published', 'Option1 Name', 'Option1 Value', 'Variant SKU',
+      'Variant Grams', 'Variant Inventory Tracker', 'Variant Inventory Qty',
+      'Variant Inventory Policy', 'Variant Fulfillment Service',
+      'Variant Price', 'Variant Compare At Price', 'Variant Requires Shipping',
+      'Variant Taxable', 'Variant Barcode', 'Image Src', 'Image Position',
+      'Image Alt Text', 'Gift Card', 'SEO Title', 'SEO Description',
+      'Variant Image', 'Variant Weight Unit', 'Cost per item'
+    ];
+
+    const rows = filteredProducts.map(product => {
+      const handle = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      return [
+        handle,
+        product.name,
+        product.description || '',
+        'StockFlow',
+        product.category || 'Other',
+        product.category || '',
+        'TRUE',
+        'Title',
+        'Default Title',
+        product.sku || '',
+        '', // Weight in grams
+        'shopify',
+        product.quantity || 0,
+        'deny',
+        'manual',
+        product.price || 0,
+        '', // Compare at price
+        'TRUE',
+        'TRUE',
+        product.sku || '',
+        product.image_url || '',
+        '1',
+        product.name,
+        'FALSE',
+        product.name,
+        product.description || '',
+        product.image_url || '',
+        'g',
+        product.cost_price || ''
+      ];
+    });
+
+    // Convert to CSV
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    // Download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `shopify-products-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Products exported to Shopify CSV format');
+  };
+
   return (
   <div className="space-y-6">
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -500,7 +568,11 @@ export default function Inventory() {
             <Settings className="w-4 h-4" />
           </Button>
         </div>
-        <Button onClick={handlePrintReport} variant="outline" className="mr-0">
+        <Button onClick={handleExportToShopify} variant="outline" disabled={filteredProducts.length === 0}>
+          <Download className="w-4 h-4 mr-2" />
+          Export to Shopify
+        </Button>
+        <Button onClick={handlePrintReport} variant="outline">
           <Printer className="w-4 h-4 mr-2" />
           Print List
         </Button>
