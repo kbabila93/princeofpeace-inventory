@@ -20,6 +20,7 @@ import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 
 export default function Dashboard() {
+  console.log('Dashboard rendering...');
   const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
