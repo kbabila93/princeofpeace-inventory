@@ -16,11 +16,13 @@ import {
 import { Download, TrendingUp, Package, DollarSign, Search } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import ProductDetailsDialog from '@/components/inventory/ProductDetailsDialog';
 
 export default function ProductSalesReport() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [searchProduct, setSearchProduct] = useState("");
+  const [viewingProduct, setViewingProduct] = useState(null);
 
   const { data: sales = [], isLoading } = useQuery({
     queryKey: ['sales'],
@@ -382,7 +384,14 @@ export default function ProductSalesReport() {
                           const isOutOfStock = product.stockLeft === 0;
 
                           return (
-                            <TableRow key={product.productId}>
+                            <TableRow 
+                              key={product.productId}
+                              className="cursor-pointer hover:bg-gray-50"
+                              onClick={() => {
+                                const fullProduct = products.find(p => p.id === product.productId);
+                                if (fullProduct) setViewingProduct(fullProduct);
+                              }}
+                            >
                               <TableCell>
                                 <div className="flex items-center gap-3">
                                   <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -446,6 +455,12 @@ export default function ProductSalesReport() {
           </div>
         </CardContent>
       </Card>
+
+      <ProductDetailsDialog 
+        isOpen={!!viewingProduct}
+        onClose={() => setViewingProduct(null)}
+        product={viewingProduct}
+      />
     </div>
   );
 }
