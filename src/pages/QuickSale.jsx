@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingCart, Loader2, Plus, Minus, Check } from 'lucide-react';
+import { ShoppingCart, Loader2, Plus, Minus, Check, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
+import BarcodeScannerDialog from '@/components/scanner/BarcodeScannerDialog';
 
 export default function QuickSale() {
   const queryClient = useQueryClient();
@@ -19,6 +20,7 @@ export default function QuickSale() {
   const [quantity, setQuantity] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['me'],
@@ -55,6 +57,11 @@ export default function QuickSale() {
     if (sku.trim()) {
       lookupProduct(sku.trim());
     }
+  };
+
+  const handleScanResult = (scannedCode) => {
+    setSku(scannedCode);
+    lookupProduct(scannedCode);
   };
 
   const processSaleMutation = useMutation({
@@ -155,6 +162,9 @@ export default function QuickSale() {
               />
               <Button onClick={handleSearch} disabled={!sku.trim()}>
                 Search
+              </Button>
+              <Button onClick={() => setIsScannerOpen(true)} variant="outline">
+                <Camera className="w-4 h-4" />
               </Button>
             </div>
           </CardContent>
@@ -277,6 +287,12 @@ export default function QuickSale() {
           </Button>
         </div>
       </div>
+
+      <BarcodeScannerDialog 
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScan={handleScanResult}
+      />
     </div>
   );
 }
