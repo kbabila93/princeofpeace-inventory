@@ -10,19 +10,39 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
   const [error, setError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [manualInput, setManualInput] = useState("");
+  const [detectionSupported, setDetectionSupported] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const canvasRef = useRef(null);
+  const scanIntervalRef = useRef(null);
+  const detectorRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
+      checkBarcodeSupport();
       startCamera();
     }
 
     return () => {
       stopCamera();
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current);
+      }
     };
   }, [isOpen]);
+
+  const checkBarcodeSupport = async () => {
+    if ('BarcodeDetector' in window) {
+      try {
+        detectorRef.current = new window.BarcodeDetector({
+          formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'qr_code']
+        });
+        setDetectionSupported(true);
+      } catch (e) {
+        console.log("BarcodeDetector not fully supported");
+      }
+    }
+  };
 
   const startCamera = async () => {
     try {
@@ -38,7 +58,12 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
+        
+        // Start continuous scanning if supported
+        if (detectorRef.current) {
+          startContinuousScanning();
+        }
       }
     } catch (err) {
       console.error("Camera error:", err);
@@ -47,7 +72,31 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
     }
   };
 
+  const startContinuousScanning = () => {
+    scanIntervalRef.current = setInterval(async () => {
+      if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && detectorRef.current) {
+        try {
+          const barcodes = await detectorRef.current.detect(videoRef.current);
+          if (barcodes.length > 0) {
+            const code = barcodes[0].rawValue;
+            console.log("Detected barcode:", code);
+            toast.success("Barcode detected!");
+            clearInterval(scanIntervalRef.current);
+            onScan(code);
+            stopCamera();
+            onClose();
+          }
+        } catch (err) {
+          // Ignore detection errors
+        }
+      }
+    }, 300);
+  };
+
   const stopCamera = () => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
@@ -167,12 +216,19 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
                   
                   <div className="text-center space-y-3">
                     <p className="text-sm text-gray-600">
-                      Position the barcode within the frame and capture
+                      {detectionSupported 
+                        ? "Position the barcode within the frame - it will scan automatically"
+                        : "Position the barcode and capture to enter manually"}
                     </p>
-                    <Button onClick={captureImage} className="w-full bg-indigo-600 hover:bg-indigo-700">
-                      <Camera className="w-4 h-4 mr-2" />
-                      Capture Image
-                    </Button>
+                    {!detectionSupported && (
+                      <Button onClick={captureImage} className="w-full bg-indigo-600 hover:bg-indigo-700">
+                        <Camera className="w-4 h-4 mr-2" />
+                        Capture Image
+                      </Button>
+                    )}
+                    <p className="text-xs text-gray-500">
+                      {detectionSupported ? "✓ Automatic scanning enabled" : "Manual entry mode"}
+                    </p>
                   </div>
                 </>
               )}
