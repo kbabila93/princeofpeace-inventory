@@ -70,6 +70,7 @@ export default function Layout({ children, currentPageName }) {
   const navigation = [
     { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard, permission: 'view_dashboard' },
     { name: 'Business Analytics', href: 'BusinessAnalytics', icon: TrendingUp, permission: 'view_dashboard' },
+    { name: 'Quick Sale', href: 'QuickSale', icon: Receipt, permission: 'manage_sales' },
     { name: 'Sales', href: 'Sales', icon: DollarSign, permission: 'manage_sales' },
     { name: 'Sales by Section', href: 'SalesBySections', icon: DollarSign, permission: 'manage_sales' },
     { name: 'Product Sales Report', href: 'ProductSalesReport', icon: DollarSign, permission: 'manage_sales' },

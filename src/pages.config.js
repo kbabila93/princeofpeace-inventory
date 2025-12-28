@@ -1,5 +1,6 @@
 import AdvertGenerator from './pages/AdvertGenerator';
 import Announcements from './pages/Announcements';
+import BusinessAnalytics from './pages/BusinessAnalytics';
 import Customers from './pages/Customers';
 import DamagedInventory from './pages/DamagedInventory';
 import Dashboard from './pages/Dashboard';
@@ -9,20 +10,20 @@ import Home from './pages/Home';
 import Inventory from './pages/Inventory';
 import InventorySections from './pages/InventorySections';
 import ProductSalesReport from './pages/ProductSalesReport';
+import QuickSale from './pages/QuickSale';
 import Sales from './pages/Sales';
 import SalesBySections from './pages/SalesBySections';
 import Suppliers from './pages/Suppliers';
 import Transactions from './pages/Transactions';
 import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
-import BusinessAnalytics from './pages/BusinessAnalytics';
-import QuickSale from './pages/QuickSale';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdvertGenerator": AdvertGenerator,
     "Announcements": Announcements,
+    "BusinessAnalytics": BusinessAnalytics,
     "Customers": Customers,
     "DamagedInventory": DamagedInventory,
     "Dashboard": Dashboard,
@@ -32,14 +33,13 @@ export const PAGES = {
     "Inventory": Inventory,
     "InventorySections": InventorySections,
     "ProductSalesReport": ProductSalesReport,
+    "QuickSale": QuickSale,
     "Sales": Sales,
     "SalesBySections": SalesBySections,
     "Suppliers": Suppliers,
     "Transactions": Transactions,
     "Users": Users,
     "VideoConference": VideoConference,
-    "BusinessAnalytics": BusinessAnalytics,
-    "QuickSale": QuickSale,
 }
 
 export const pagesConfig = {
