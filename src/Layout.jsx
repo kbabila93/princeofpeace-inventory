@@ -22,7 +22,8 @@ import {
   Download,
   Grid3x3,
   AlertTriangle,
-  Settings
+  Settings,
+  TrendingUp
   } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import TeamChat from '@/components/chat/TeamChat';
