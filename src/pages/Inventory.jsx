@@ -61,6 +61,7 @@ import { toast } from 'sonner';
 import { ScanBarcode, CheckSquare, XSquare, Layers, Download } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
+import { createPageUrl } from '@/utils';
 
 export default function Inventory() {
   const [search, setSearch] = useState("");
@@ -275,6 +276,7 @@ export default function Inventory() {
     const safeName = product.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const safeSku = sku.replace(/"/g, '\\"');
     const logoUrl = user?.store_logo || '';
+    const quickSaleUrl = `${window.location.origin}${createPageUrl('QuickSale')}?sku=${encodeURIComponent(product.sku || '')}`;
     
     console.log('Logo URL:', logoUrl); // Debug
     
@@ -346,6 +348,12 @@ export default function Inventory() {
               font-size: 12px; 
               font-weight: bold; 
             }
+            .scan-info {
+              font-size: 7px;
+              color: #3b82f6;
+              margin-top: 2px;
+              font-style: italic;
+            }
           </style>
         </head>
         <body>
@@ -354,6 +362,7 @@ export default function Inventory() {
             <div class="product-name">${safeName}</div>
             <svg id="barcode"></svg>
             <div class="price">${product.currency || '$'} ${Number(product.price).toFixed(2)}</div>
+            <div class="scan-info">Scan label to record sale</div>
           </div>
           <script>
             window.onload = function() {
