@@ -23,6 +23,7 @@ export default function ProductSalesReport() {
   const [endDate, setEndDate] = useState("");
   const [searchProduct, setSearchProduct] = useState("");
   const [viewingProduct, setViewingProduct] = useState(null);
+  const [groupBy, setGroupBy] = useState("section"); // "section" or "month"
 
   const { data: sales = [], isLoading } = useQuery({
     queryKey: ['sales'],
@@ -100,6 +101,76 @@ export default function ProductSalesReport() {
     });
     return groups;
   }, [filteredProducts]);
+
+  const groupedByMonth = useMemo(() => {
+    if (groupBy !== "month") return {};
+    
+    const monthGroups = {};
+    
+    // Re-process sales to group by month
+    let filteredSales = sales;
+    if (startDate) {
+      filteredSales = filteredSales.filter(s => new Date(s.date) >= new Date(startDate));
+    }
+    if (endDate) {
+      filteredSales = filteredSales.filter(s => new Date(s.date) <= new Date(endDate));
+    }
+
+    filteredSales.forEach(sale => {
+      const saleDate = new Date(sale.date);
+      const monthKey = `${saleDate.getFullYear()}-${String(saleDate.getMonth() + 1).padStart(2, '0')}`;
+      const monthLabel = saleDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+      
+      const items = JSON.parse(sale.items_json || "[]");
+      
+      items.forEach(item => {
+        const product = products.find(p => p.id === item.product_id);
+        if (searchProduct && !item.name.toLowerCase().includes(searchProduct.toLowerCase())) return;
+        
+        const costPrice = product?.cost_price || 0;
+        const itemProfit = (item.price - costPrice) * item.quantity;
+
+        if (!monthGroups[monthKey]) {
+          monthGroups[monthKey] = {
+            label: monthLabel,
+            products: {}
+          };
+        }
+
+        if (!monthGroups[monthKey].products[item.product_id]) {
+          monthGroups[monthKey].products[item.product_id] = {
+            productId: item.product_id,
+            name: item.name,
+            section: product?.section || "Main",
+            totalQuantity: 0,
+            totalRevenue: 0,
+            totalProfit: 0,
+            salesCount: 0,
+            image_url: product?.image_url || null,
+            currency: sale.currency || 'USD',
+            stockLeft: product?.quantity || 0,
+            averagePrice: 0
+          };
+        }
+
+        monthGroups[monthKey].products[item.product_id].totalQuantity += item.quantity;
+        monthGroups[monthKey].products[item.product_id].totalRevenue += item.price * item.quantity;
+        monthGroups[monthKey].products[item.product_id].totalProfit += itemProfit;
+        monthGroups[monthKey].products[item.product_id].salesCount += 1;
+        monthGroups[monthKey].products[item.product_id].averagePrice = 
+          monthGroups[monthKey].products[item.product_id].totalRevenue / 
+          monthGroups[monthKey].products[item.product_id].totalQuantity;
+      });
+    });
+
+    // Convert products object to array and sort
+    Object.keys(monthGroups).forEach(monthKey => {
+      monthGroups[monthKey].products = Object.values(monthGroups[monthKey].products)
+        .sort((a, b) => b.totalRevenue - a.totalRevenue);
+    });
+
+    return monthGroups;
+  }, [sales, products, startDate, endDate, searchProduct, groupBy]);
 
   const totalRevenue = filteredProducts.reduce((sum, p) => sum + (p.totalRevenue || 0), 0);
   const totalProfit = filteredProducts.reduce((sum, p) => sum + (p.totalProfit || 0), 0);
@@ -335,6 +406,24 @@ export default function ProductSalesReport() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
+            <div className="space-y-2">
+              <Label>Group By</Label>
+              <Select value={groupBy} onValueChange={setGroupBy}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="section">Section</SelectItem>
+                  <SelectItem value="month">Month</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+          </div>
+
           <div className="border rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
@@ -362,6 +451,94 @@ export default function ProductSalesReport() {
                       No sales data found
                     </TableCell>
                   </TableRow>
+                ) : groupBy === "month" ? (
+                  Object.entries(groupedByMonth).sort((a, b) => b[0].localeCompare(a[0])).map(([monthKey, monthData]) => {
+                    const monthProducts = monthData.products;
+                    const monthTotalQty = monthProducts.reduce((sum, p) => sum + p.totalQuantity, 0);
+                    const monthTotalRevenue = monthProducts.reduce((sum, p) => sum + p.totalRevenue, 0);
+                    const monthTotalProfit = monthProducts.reduce((sum, p) => sum + p.totalProfit, 0);
+                    
+                    return (
+                      <React.Fragment key={monthKey}>
+                        <TableRow className="bg-purple-50 hover:bg-purple-50">
+                          <TableCell colSpan={5} className="font-bold text-purple-900 text-base py-3">
+                            {monthData.label}
+                            <span className="ml-3 text-sm font-normal text-purple-600">
+                              ({monthProducts.length} product{monthProducts.length !== 1 ? 's' : ''})
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                        {monthProducts.map((product) => {
+                          const profitMargin = product.totalRevenue > 0 ? (product.totalProfit / product.totalRevenue) * 100 : 0;
+                          const isLowStock = product.stockLeft <= 10;
+                          const isOutOfStock = product.stockLeft === 0;
+
+                          return (
+                            <TableRow 
+                              key={product.productId}
+                              className="cursor-pointer hover:bg-gray-50"
+                              onClick={() => {
+                                const fullProduct = products.find(p => p.id === product.productId);
+                                if (fullProduct) setViewingProduct(fullProduct);
+                              }}
+                            >
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    {product.image_url ? (
+                                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <span className="text-xs font-bold text-gray-400">
+                                        {product.name.substring(0, 2).toUpperCase()}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="font-medium text-gray-900">{product.name}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <span className={`font-semibold ${isOutOfStock ? 'text-red-600' : isLowStock ? 'text-orange-600' : 'text-gray-900'}`}>
+                                  {product.stockLeft}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right font-medium">{product.totalQuantity}</TableCell>
+                              <TableCell className="text-right text-gray-600">{product.salesCount}</TableCell>
+                              <TableCell className="text-right text-gray-700">
+                                {product.currency} {product.averagePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right font-bold text-green-600">
+                                {product.currency} {product.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right font-bold text-purple-600">
+                                {product.currency} {product.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <span className={`font-semibold ${profitMargin >= 50 ? 'text-green-600' : profitMargin >= 30 ? 'text-blue-600' : 'text-gray-600'}`}>
+                                  {profitMargin.toFixed(1)}%
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                        <TableRow className="bg-gray-50 font-semibold">
+                          <TableCell className="text-purple-700">Month Total</TableCell>
+                          <TableCell className="text-right text-purple-700">{monthProducts.reduce((sum, p) => sum + p.stockLeft, 0)}</TableCell>
+                          <TableCell className="text-right text-purple-700">{monthTotalQty}</TableCell>
+                          <TableCell className="text-right text-purple-700">{monthProducts.reduce((sum, p) => sum + p.salesCount, 0)}</TableCell>
+                          <TableCell className="text-right text-purple-700">-</TableCell>
+                          <TableCell className="text-right text-purple-700">
+                            {currency} {monthTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell className="text-right text-purple-700">
+                            {currency} {monthTotalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell className="text-right text-purple-700">
+                            {monthTotalRevenue > 0 ? ((monthTotalProfit / monthTotalRevenue) * 100).toFixed(1) : '0.0'}%
+                          </TableCell>
+                        </TableRow>
+                      </React.Fragment>
+                    );
+                  })
                 ) : (
                   Object.entries(groupedBySection).sort().map(([section, sectionProducts]) => {
                     const sectionTotalQty = sectionProducts.reduce((sum, p) => sum + p.totalQuantity, 0);
