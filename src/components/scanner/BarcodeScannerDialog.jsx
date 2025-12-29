@@ -4,66 +4,61 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Camera, X, Loader2, SwitchCamera } from 'lucide-react';
 import { toast } from 'sonner';
+import { BrowserMultiFormatReader } from '@zxing/browser';
 
 export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [manualInput, setManualInput] = useState("");
-  const [detectionSupported, setDetectionSupported] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const canvasRef = useRef(null);
-  const scanIntervalRef = useRef(null);
-  const detectorRef = useRef(null);
+  const readerRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
-      checkBarcodeSupport();
       startCamera();
     }
 
     return () => {
       stopCamera();
-      if (scanIntervalRef.current) {
-        clearInterval(scanIntervalRef.current);
-      }
     };
   }, [isOpen]);
-
-  const checkBarcodeSupport = async () => {
-    if ('BarcodeDetector' in window) {
-      try {
-        detectorRef.current = new window.BarcodeDetector({
-          formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'qr_code']
-        });
-        setDetectionSupported(true);
-      } catch (e) {
-        console.log("BarcodeDetector not fully supported");
-      }
-    }
-  };
 
   const startCamera = async () => {
     try {
       setError(null);
       setIsScanning(true);
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-        audio: false
-      });
+      const reader = new BrowserMultiFormatReader();
+      readerRef.current = reader;
 
-      streamRef.current = stream;
+      const videoInputDevices = await reader.listVideoInputDevices();
       
+      // Try to find back camera
+      const backCamera = videoInputDevices.find(device => 
+        device.label.toLowerCase().includes('back') || 
+        device.label.toLowerCase().includes('rear')
+      );
+      
+      const selectedDeviceId = backCamera ? backCamera.deviceId : videoInputDevices[0]?.deviceId;
+
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        
-        // Start continuous scanning if supported
-        if (detectorRef.current) {
-          startContinuousScanning();
-        }
+        await reader.decodeFromVideoDevice(
+          selectedDeviceId,
+          videoRef.current,
+          (result, error) => {
+            if (result) {
+              const code = result.getText();
+              console.log("Detected barcode:", code);
+              toast.success("Barcode detected!");
+              onScan(code);
+              stopCamera();
+              onClose();
+            }
+          }
+        );
       }
     } catch (err) {
       console.error("Camera error:", err);
@@ -72,30 +67,10 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
     }
   };
 
-  const startContinuousScanning = () => {
-    scanIntervalRef.current = setInterval(async () => {
-      if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && detectorRef.current) {
-        try {
-          const barcodes = await detectorRef.current.detect(videoRef.current);
-          if (barcodes.length > 0) {
-            const code = barcodes[0].rawValue;
-            console.log("Detected barcode:", code);
-            toast.success("Barcode detected!");
-            clearInterval(scanIntervalRef.current);
-            onScan(code);
-            stopCamera();
-            onClose();
-          }
-        } catch (err) {
-          // Ignore detection errors
-        }
-      }
-    }, 300);
-  };
-
   const stopCamera = () => {
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current);
+    if (readerRef.current) {
+      readerRef.current.reset();
+      readerRef.current = null;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -216,19 +191,14 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
                   
                   <div className="text-center space-y-3">
                     <p className="text-sm text-gray-600">
-                      {detectionSupported 
-                        ? "Position the barcode within the frame - it will scan automatically"
-                        : "Position the barcode and capture to enter manually"}
+                      Position the barcode within the frame - scanning automatically
                     </p>
-                    {!detectionSupported && (
-                      <Button onClick={captureImage} className="w-full bg-indigo-600 hover:bg-indigo-700">
-                        <Camera className="w-4 h-4 mr-2" />
-                        Capture Image
-                      </Button>
-                    )}
-                    <p className="text-xs text-gray-500">
-                      {detectionSupported ? "✓ Automatic scanning enabled" : "Manual entry mode"}
-                    </p>
+                    <div className="flex justify-center gap-2 flex-wrap">
+                      <span className="text-xs bg-gray-100 px-2 py-1 rounded">QR Code</span>
+                      <span className="text-xs bg-gray-100 px-2 py-1 rounded">CODE128</span>
+                      <span className="text-xs bg-gray-100 px-2 py-1 rounded">EAN13</span>
+                      <span className="text-xs bg-gray-100 px-2 py-1 rounded">UPC</span>
+                    </div>
                   </div>
                 </>
               )}
