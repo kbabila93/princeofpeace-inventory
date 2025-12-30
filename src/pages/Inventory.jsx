@@ -329,10 +329,17 @@ export default function Inventory() {
               height: 20px;
               object-fit: contain;
             }
+            .product-image {
+              width: 50px;
+              height: 50px;
+              object-fit: cover;
+              border-radius: 4px;
+              margin-bottom: 4px;
+            }
             #barcode { 
               width: 100%; 
               height: auto; 
-              max-height: 60%;
+              max-height: 50%;
               display: block; 
             }
             .product-name { 
@@ -359,6 +366,7 @@ export default function Inventory() {
         <body>
           <div class="label-content">
             ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="logo" />` : ''}
+            ${product.image_url ? `<img src="${product.image_url}" alt="${safeName}" class="product-image" />` : ''}
             <div class="product-name">${safeName}</div>
             <svg id="barcode"></svg>
             <div class="price">${product.currency || '$'} ${Number(product.price).toFixed(2)}</div>
