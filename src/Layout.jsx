@@ -84,6 +84,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Transactions', href: 'Transactions', icon: History, permission: 'manage_transactions' },
     { name: 'Meetings', href: 'VideoConference', icon: Video, permission: 'view_dashboard' },
     { name: 'Marketing', href: 'AdvertGenerator', icon: Megaphone, permission: 'view_dashboard' },
+    { name: 'Shop Gallery', href: 'ShopGallery', icon: ImageIcon, permission: 'view_dashboard' },
     { name: 'Announcements', href: 'Announcements', icon: Radio, permission: 'view_dashboard' },
     ];
 
