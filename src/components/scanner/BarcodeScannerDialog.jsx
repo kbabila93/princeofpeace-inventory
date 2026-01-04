@@ -26,26 +26,25 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
   const startCamera = async () => {
     try {
       setError(null);
-      setIsScanning(true);
+      setIsScanning(false);
 
-      // Dynamically import ZXing to avoid SSR issues
+      // Request camera permission first
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: { ideal: 'environment' } } 
+      });
+      
+      // Stop the stream immediately - ZXing will request it again
+      stream.getTracks().forEach(track => track.stop());
+
+      // Dynamically import ZXing
       const { BrowserMultiFormatReader } = await import('@zxing/browser');
       const reader = new BrowserMultiFormatReader();
       readerRef.current = reader;
 
-      const videoInputDevices = await reader.listVideoInputDevices();
-      
-      // Try to find back camera
-      const backCamera = videoInputDevices.find(device => 
-        device.label.toLowerCase().includes('back') || 
-        device.label.toLowerCase().includes('rear')
-      );
-      
-      const selectedDeviceId = backCamera ? backCamera.deviceId : videoInputDevices[0]?.deviceId;
-
       if (videoRef.current) {
+        setIsScanning(true);
         await reader.decodeFromVideoDevice(
-          selectedDeviceId,
+          undefined,
           videoRef.current,
           (result, err) => {
             if (result) {
@@ -69,7 +68,7 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
       } else if (err.name === 'NotReadableError') {
         errorMessage += "Camera is already in use by another app.";
       } else {
-        errorMessage += "Please check your browser permissions and try again.";
+        errorMessage += "Error: " + (err.message || "Unknown error");
       }
       setError(errorMessage);
       setIsScanning(false);
