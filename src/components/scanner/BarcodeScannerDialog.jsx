@@ -89,6 +89,13 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
   };
 
   const stopCamera = () => {
+    // Stop video stream
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    
     if (readerRef.current) {
       try {
         readerRef.current.reset();
