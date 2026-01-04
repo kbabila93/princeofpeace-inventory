@@ -61,7 +61,17 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
       }
     } catch (err) {
       console.error("Camera error:", err);
-      setError("Failed to access camera. Please check permissions.");
+      let errorMessage = "Failed to access camera. ";
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage += "Please allow camera access in your browser settings.";
+      } else if (err.name === 'NotFoundError') {
+        errorMessage += "No camera found on this device.";
+      } else if (err.name === 'NotReadableError') {
+        errorMessage += "Camera is already in use by another app.";
+      } else {
+        errorMessage += "Please check your browser permissions and try again.";
+      }
+      setError(errorMessage);
       setIsScanning(false);
     }
   };
