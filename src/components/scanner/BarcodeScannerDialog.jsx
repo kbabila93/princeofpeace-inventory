@@ -9,16 +9,14 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
   const [error, setError] = useState(null);
   const videoRef = useRef(null);
   const readerRef = useRef(null);
+  const scanningRef = useRef(false);
 
   useEffect(() => {
-    let mounted = true;
-
     if (isOpen) {
       startCamera();
     }
 
     return () => {
-      mounted = false;
       stopCamera();
     };
   }, [isOpen]);
