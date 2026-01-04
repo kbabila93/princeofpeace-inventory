@@ -13,11 +13,11 @@ import ProductSalesReport from './pages/ProductSalesReport';
 import QuickSale from './pages/QuickSale';
 import Sales from './pages/Sales';
 import SalesBySections from './pages/SalesBySections';
+import ShopGallery from './pages/ShopGallery';
 import Suppliers from './pages/Suppliers';
 import Transactions from './pages/Transactions';
 import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
-import ShopGallery from './pages/ShopGallery';
 import __Layout from './Layout.jsx';
 
 
@@ -37,11 +37,11 @@ export const PAGES = {
     "QuickSale": QuickSale,
     "Sales": Sales,
     "SalesBySections": SalesBySections,
+    "ShopGallery": ShopGallery,
     "Suppliers": Suppliers,
     "Transactions": Transactions,
     "Users": Users,
     "VideoConference": VideoConference,
-    "ShopGallery": ShopGallery,
 }
 
 export const pagesConfig = {

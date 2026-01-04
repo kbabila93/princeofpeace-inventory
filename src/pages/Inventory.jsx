@@ -267,7 +267,7 @@ export default function Inventory() {
   const handlePrintLabel = (product) => {
     const sku = product.sku || "NO SKU";
     const printWindow = window.open('', '_blank', `width=${printerSettings.width * 10},height=${printerSettings.height * 10}`);
-    
+
     if (!printWindow) {
       toast.error("Please allow popups to print labels");
       return;
@@ -277,13 +277,13 @@ export default function Inventory() {
     const safeSku = sku.replace(/"/g, '\\"');
     const logoUrl = user?.store_logo || '';
     const quickSaleUrl = `${window.location.origin}${createPageUrl('QuickSale')}?sku=${encodeURIComponent(product.sku || '')}`;
-    
+
     console.log('Logo URL:', logoUrl); // Debug
-    
+
     if (!logoUrl) {
       toast.info("No logo set. You can upload one in the Marketing page.");
     }
-    
+
     // CSS to match selected dimensions
     const widthStyle = `${printerSettings.width}${printerSettings.unit}`;
     const heightStyle = `${printerSettings.height}${printerSettings.unit}`;
@@ -383,7 +383,7 @@ export default function Inventory() {
                   margin: 0,
                   fontSize: 10
                 });
-                
+
                 // Wait for all images to load
                 const images = document.querySelectorAll('img');
                 if (images.length > 0) {
@@ -421,9 +421,196 @@ export default function Inventory() {
         </body>
       </html>
     `;
-    
+
     printWindow.document.write(htmlContent);
     printWindow.document.close();
+  };
+
+  const handlePrintMultipleLabels = () => {
+    const selectedProducts = filteredProducts.filter(p => selectedIds.includes(p.id));
+    if (selectedProducts.length === 0) {
+      toast.error("No products selected");
+      return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+
+    if (!printWindow) {
+      toast.error("Please allow popups to print labels");
+      return;
+    }
+
+    const logoUrl = user?.store_logo || '';
+    const widthStyle = `${printerSettings.width}${printerSettings.unit}`;
+    const heightStyle = `${printerSettings.height}${printerSettings.unit}`;
+
+    // Generate label HTML for each product
+    const labelsHtml = selectedProducts.map((product, index) => {
+      const safeName = product.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const safeSku = (product.sku || "NO SKU").replace(/"/g, '\\"');
+
+      return `
+        <div class="label-item">
+          <div class="label-content">
+            ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="logo" />` : ''}
+            ${product.image_url ? `<img src="${product.image_url}" alt="${safeName}" class="product-image" />` : ''}
+            <div class="product-name">${safeName}</div>
+            <svg id="barcode-${index}"></svg>
+            <div class="price">${product.currency || '$'} ${Number(product.price).toFixed(2)}</div>
+            <div class="scan-info">Scan label to record sale</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const barcodeScripts = selectedProducts.map((product, index) => {
+      const safeSku = (product.sku || "NO SKU").replace(/"/g, '\\"');
+      return `
+        try {
+          JsBarcode("#barcode-${index}", "${safeSku}", {
+            format: "CODE128",
+            width: 2,
+            height: 40,
+            displayValue: true,
+            margin: 0,
+            fontSize: 10
+          });
+        } catch(e) { console.error('Barcode error:', e); }
+      `;
+    }).join('\n');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Labels</title>
+          <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+          <style>
+            @page {
+              size: A4;
+              margin: 10mm;
+            }
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 10mm;
+            }
+            .labels-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fill, ${widthStyle});
+              gap: 5mm;
+              justify-content: start;
+            }
+            .label-item {
+              width: ${widthStyle};
+              height: ${heightStyle};
+              border: 1px dashed #ccc;
+              page-break-inside: avoid;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .label-content {
+              text-align: center;
+              width: 95%;
+              height: 95%;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              position: relative;
+            }
+            .logo {
+              position: absolute;
+              top: 2px;
+              right: 2px;
+              width: 20px;
+              height: 20px;
+              object-fit: contain;
+            }
+            .product-image {
+              width: 50px;
+              height: 50px;
+              object-fit: cover;
+              border-radius: 4px;
+              margin-bottom: 4px;
+            }
+            svg {
+              width: 100%;
+              height: auto;
+              max-height: 40%;
+              display: block;
+            }
+            .product-name {
+              font-size: 10px;
+              font-weight: bold;
+              margin-bottom: 2px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 100%;
+            }
+            .price {
+              font-size: 12px;
+              font-weight: bold;
+            }
+            .scan-info {
+              font-size: 7px;
+              color: #3b82f6;
+              margin-top: 2px;
+              font-style: italic;
+            }
+            @media print {
+              .label-item {
+                border: none;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="labels-grid">
+            ${labelsHtml}
+          </div>
+          <script>
+            window.onload = function() {
+              ${barcodeScripts}
+
+              const images = document.querySelectorAll('img');
+              if (images.length > 0) {
+                let loadedCount = 0;
+                images.forEach(img => {
+                  if (img.complete) {
+                    loadedCount++;
+                  } else {
+                    img.onload = () => {
+                      loadedCount++;
+                      if (loadedCount === images.length) {
+                        setTimeout(() => window.print(), 500);
+                      }
+                    };
+                    img.onerror = () => {
+                      loadedCount++;
+                      if (loadedCount === images.length) {
+                        setTimeout(() => window.print(), 500);
+                      }
+                    };
+                  }
+                });
+                if (loadedCount === images.length) {
+                  setTimeout(() => window.print(), 500);
+                }
+              } else {
+                setTimeout(() => window.print(), 500);
+              }
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    toast.success(`Preparing ${selectedProducts.length} labels...`);
   };
 
   const handleShare = (product) => {
@@ -705,6 +892,10 @@ export default function Inventory() {
              <Button variant="outline" size="sm" onClick={() => setSelectedIds([])} className="bg-white hover:bg-indigo-50 text-indigo-700 border-indigo-200">
               <XSquare className="w-4 h-4 mr-2" />
               Cancel Selection
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrintMultipleLabels} className="bg-white hover:bg-green-50 text-green-700 border-green-200">
+              <Printer className="w-4 h-4 mr-2" />
+              Print Labels
             </Button>
             <Button size="sm" onClick={() => setBulkEditOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
               <Layers className="w-4 h-4 mr-2" />
