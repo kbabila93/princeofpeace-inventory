@@ -24,14 +24,13 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
   const startCamera = async () => {
     try {
       setError(null);
-      setIsScanning(true);
+      scanningRef.current = true;
 
-      // Use native getUserMedia for better compatibility
       const constraints = {
         video: {
           facingMode: { ideal: 'environment' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
         }
       };
 
@@ -40,49 +39,52 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
+        setIsScanning(true);
       }
 
-      // Now use ZXing to scan from the video
       const { BrowserMultiFormatReader } = await import('@zxing/browser');
       const reader = new BrowserMultiFormatReader();
       readerRef.current = reader;
 
-      const scanFromVideo = async () => {
-        if (!videoRef.current || !isOpen) return;
+      const scanLoop = async () => {
+        if (!scanningRef.current || !videoRef.current) return;
         
         try {
           const result = await reader.decodeFromVideoElement(videoRef.current);
-          if (result) {
+          if (result && scanningRef.current) {
             const code = result.getText();
-            console.log("Detected barcode:", code);
-            toast.success("Barcode detected!");
+            console.log("Detected:", code);
+            toast.success("Barcode scanned!");
             onScan(code);
             stopCamera();
             onClose();
+            return;
           }
         } catch (err) {
-          // Continue scanning
-          if (isOpen) {
-            setTimeout(scanFromVideo, 100);
-          }
+          // No barcode found, continue
+        }
+        
+        if (scanningRef.current) {
+          requestAnimationFrame(scanLoop);
         }
       };
 
-      scanFromVideo();
+      scanLoop();
     } catch (err) {
       console.error("Camera error:", err);
-      let errorMessage = "Failed to access camera. ";
+      let errorMessage = "Camera access failed. ";
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        errorMessage += "Please allow camera access in your browser settings.";
+        errorMessage += "Please enable camera permissions.";
       } else if (err.name === 'NotFoundError') {
-        errorMessage += "No camera found on this device.";
+        errorMessage += "No camera detected.";
       } else if (err.name === 'NotReadableError') {
-        errorMessage += "Camera is already in use by another app.";
+        errorMessage += "Camera in use by another app.";
       } else {
-        errorMessage += "Error: " + (err.message || "Unknown error");
+        errorMessage += err.message || "Unknown error.";
       }
       setError(errorMessage);
       setIsScanning(false);
+      scanningRef.current = false;
     }
   };
 
