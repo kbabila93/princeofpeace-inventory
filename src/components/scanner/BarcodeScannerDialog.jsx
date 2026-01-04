@@ -26,38 +26,51 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
   const startCamera = async () => {
     try {
       setError(null);
-      setIsScanning(false);
+      setIsScanning(true);
 
-      // Request camera permission first
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: { ideal: 'environment' } } 
-      });
+      // Use native getUserMedia for better compatibility
+      const constraints = {
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
-      // Stop the stream immediately - ZXing will request it again
-      stream.getTracks().forEach(track => track.stop());
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
 
-      // Dynamically import ZXing
+      // Now use ZXing to scan from the video
       const { BrowserMultiFormatReader } = await import('@zxing/browser');
       const reader = new BrowserMultiFormatReader();
       readerRef.current = reader;
 
-      if (videoRef.current) {
-        setIsScanning(true);
-        await reader.decodeFromVideoDevice(
-          undefined,
-          videoRef.current,
-          (result, err) => {
-            if (result) {
-              const code = result.getText();
-              console.log("Detected barcode:", code);
-              toast.success("Barcode detected!");
-              onScan(code);
-              stopCamera();
-              onClose();
-            }
+      const scanFromVideo = async () => {
+        if (!videoRef.current || !isOpen) return;
+        
+        try {
+          const result = await reader.decodeFromVideoElement(videoRef.current);
+          if (result) {
+            const code = result.getText();
+            console.log("Detected barcode:", code);
+            toast.success("Barcode detected!");
+            onScan(code);
+            stopCamera();
+            onClose();
           }
-        );
-      }
+        } catch (err) {
+          // Continue scanning
+          if (isOpen) {
+            setTimeout(scanFromVideo, 100);
+          }
+        }
+      };
+
+      scanFromVideo();
     } catch (err) {
       console.error("Camera error:", err);
       let errorMessage = "Failed to access camera. ";
