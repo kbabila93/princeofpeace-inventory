@@ -67,6 +67,7 @@ import Suppliers from './pages/Suppliers';
 import Transactions from './pages/Transactions';
 import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
+import CustomerShop from './pages/CustomerShop';
 import __Layout from './Layout.jsx';
 
 
@@ -91,6 +92,7 @@ export const PAGES = {
     "Transactions": Transactions,
     "Users": Users,
     "VideoConference": VideoConference,
+    "CustomerShop": CustomerShop,
 }
 
 export const pagesConfig = {
