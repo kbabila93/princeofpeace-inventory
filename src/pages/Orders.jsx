@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Package, Search, Phone, Mail, MapPin, Calendar, DollarSign, ShoppingCart, Copy, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import moment from 'moment';
+import { createPageUrl } from '@/utils';
 
 export default function Orders() {
   const [search, setSearch] = useState("");
@@ -55,7 +56,7 @@ export default function Orders() {
     completed: orders.filter(o => o.status === 'completed').length,
   };
 
-  const shopUrl = `${window.location.origin}${window.location.pathname}?page=Shop`;
+  const shopUrl = `${window.location.origin}${createPageUrl('Shop')}`;
 
   const copyShopLink = () => {
     navigator.clipboard.writeText(shopUrl);
