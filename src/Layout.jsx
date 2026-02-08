@@ -1,116 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { 
-  LayoutDashboard, 
-  Package, 
-  History, 
-  DollarSign,
-  Menu,
-  Receipt, 
-  X,
-  LogOut,
-  User,
-  Users,
-  Bell,
-  MessageSquare,
-  Shield,
-  Video,
-  Megaphone,
-  Truck,
-  Radio,
-  Download,
-  Grid3x3,
-  AlertTriangle,
-  Settings,
-  TrendingUp,
-  Image as ImageIcon
-  } from 'lucide-react';
+import { LayoutDashboard, Package, History, Menu, X, LogOut, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import TeamChat from '@/components/chat/TeamChat';
-import NotificationsMenu from '@/components/notifications/NotificationsMenu';
-import UserPresence from '@/components/UserPresence';
-import PWAInstallPrompt from '@/components/PWAInstallPrompt';
-import { Toaster } from "sonner";
 import { base44 } from "@/api/base44Client";
-import UserSettingsDialog from '@/components/settings/UserSettingsDialog';
 
 export default function Layout({ children, currentPageName }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const location = useLocation();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
-
-    // Listen for open-chat events from notifications
-    const handleOpenChat = () => setIsChatOpen(true);
-    window.addEventListener('open-chat', handleOpenChat);
-
-    // Add PWA meta tags for iOS and others
-    const addMeta = (name, content) => {
-      if (!document.querySelector(`meta[name="${name}"]`)) {
-        const meta = document.createElement('meta');
-        meta.name = name;
-        meta.content = content;
-        document.head.appendChild(meta);
-      }
-    };
-
-    addMeta("apple-mobile-web-app-capable", "yes");
-    addMeta("apple-mobile-web-app-status-bar-style", "black-translucent");
-    addMeta("theme-color", "#4f46e5");
-
-    return () => {
-      window.removeEventListener('open-chat', handleOpenChat);
-    };
-    }, []);
+  }, []);
 
   const navigation = [
-    { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard, permission: 'view_dashboard' },
-    { name: 'Business Analytics', href: 'BusinessAnalytics', icon: TrendingUp, permission: 'view_dashboard' },
-    { name: 'Quick Sale', href: 'QuickSale', icon: Receipt, permission: 'manage_sales' },
-    { name: 'Sales', href: 'Sales', icon: DollarSign, permission: 'manage_sales' },
-    { name: 'Sales by Section', href: 'SalesBySections', icon: DollarSign, permission: 'manage_sales' },
-    { name: 'Product Sales Report', href: 'ProductSalesReport', icon: DollarSign, permission: 'manage_sales' },
-    { name: 'Expenditures', href: 'Expenditures', icon: Receipt, permission: 'manage_expenditures' },
-    { name: 'Inventory', href: 'Inventory', icon: Package, permission: 'manage_inventory' },
-    { name: 'Sections View', href: 'InventorySections', icon: Grid3x3, permission: 'manage_inventory' },
-    { name: 'Damaged Inventory', href: 'DamagedInventory', icon: AlertTriangle, permission: 'manage_inventory' },
-    { name: 'Employees', href: 'Employees', icon: Users, permission: 'manage_employees' },
-    { name: 'Customers', href: 'Customers', icon: Users, permission: 'manage_sales' },
-    { name: 'Suppliers', href: 'Suppliers', icon: Truck, permission: 'manage_inventory' },
-    { name: 'Transactions', href: 'Transactions', icon: History, permission: 'manage_transactions' },
-    { name: 'Meetings', href: 'VideoConference', icon: Video, permission: 'view_dashboard' },
-    { name: 'Marketing', href: 'AdvertGenerator', icon: Megaphone, permission: 'view_dashboard' },
-    { name: 'Shop Gallery', href: 'ShopGallery', icon: ImageIcon, permission: 'view_dashboard' },
-    { name: 'Announcements', href: 'Announcements', icon: Radio, permission: 'view_dashboard' },
-    ];
-
-  if (user?.role === 'admin') {
-    navigation.push({ name: 'Users', href: 'Users', icon: Shield, permission: 'manage_users' });
-  }
-
-  // Filter navigation based on user permissions
-  // If no permissions array exists (legacy/new user), default to allowing basic access or just assume all for now if not restricted
-  // For safety, let's assume if permissions array exists, check it. If not, fallback to default behavior (allow all for admin, restrict for user?)
-  // Actually, let's make it simple: if 'permissions' property exists, use it.
-  const filteredNavigation = navigation.filter(item => {
-    if (user?.role === 'admin') return true; // Admins see everything by default
-    if (!user) return false;
-    if (!item.permission) return true;
-    return (user.permissions || []).includes(item.permission);
-  });
+    { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard },
+    { name: 'Inventory', href: 'Inventory', icon: Package },
+    { name: 'Transactions', href: 'Transactions', icon: History },
+  ];
 
   const handleLogout = async () => {
     await base44.auth.logout();
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans">
-      {/* Mobile sidebar overlay */}
+    <div className="min-h-screen bg-slate-50 flex">
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
@@ -118,74 +32,57 @@ export default function Layout({ children, currentPageName }) {
         />
       )}
 
-      {/* Sidebar */}
       <aside 
         className={`
-          fixed inset-y-0 left-0 z-50 w-64 bg-white/80 backdrop-blur-xl border-r border-slate-200 transform transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 shadow-lg lg:shadow-none
+          fixed inset-y-0 left-0 z-50 w-64 bg-white border-r transform transition-transform duration-200 lg:static lg:translate-x-0
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         <div className="h-full flex flex-col">
-          <div className="h-16 flex items-center px-6 border-b border-slate-100 bg-white/50">
-            <div className="flex items-center gap-2 font-bold text-xl text-indigo-600 bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-              <Package className="w-6 h-6 text-indigo-600" />
-              <span>StockFlow</span>
+          <div className="h-16 flex items-center px-6 border-b">
+            <div className="flex items-center gap-2 font-bold text-xl text-indigo-600">
+              <Package className="w-6 h-6" />
+              <span>Inventory</span>
             </div>
             <button 
               className="ml-auto lg:hidden"
               onClick={() => setIsSidebarOpen(false)}
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
-            {filteredNavigation.map((item) => {
+          <nav className="flex-1 px-4 py-6 space-y-1">
+            {navigation.map((item) => {
               const isActive = currentPageName === item.name;
               return (
                 <Link
                   key={item.name}
                   to={createPageUrl(item.href)}
                   className={`
-                    flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden
+                    flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
                     ${isActive 
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' 
-                      : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-900'}
+                      ? 'bg-indigo-600 text-white' 
+                      : 'text-slate-600 hover:bg-slate-100'}
                   `}
                 >
-                  <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-600'}`} />
+                  <item.icon className="w-5 h-5" />
                   {item.name}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-            <div className="flex items-center gap-3 px-3 py-3 mb-2 bg-white rounded-xl border border-slate-100 shadow-sm">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-sm">
+          <div className="p-4 border-t">
+            <div className="flex items-center gap-3 px-3 py-3 mb-2 bg-slate-50 rounded-lg">
+              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
                 <User className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-900 truncate">{user?.full_name || 'User'}</p>
-                <p className="text-xs text-slate-500 truncate">{user?.email || 'Loading...'}</p>
+                <p className="text-sm font-semibold truncate">{user?.full_name || 'User'}</p>
+                <p className="text-xs text-slate-500 truncate">{user?.email}</p>
               </div>
-              </div>
-              <Button 
-              variant="ghost" 
-              className="w-full justify-start text-gray-600 hover:text-indigo-700 hover:bg-indigo-50 mb-1"
-              onClick={() => setIsSettingsOpen(true)}
-              >
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-              </Button>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 mb-1"
-              onClick={() => window.dispatchEvent(new Event('open-install-prompt'))}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Install App
-            </Button>
+            </div>
             <Button 
               variant="ghost" 
               className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -198,54 +95,22 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8">
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-16 bg-white border-b flex items-center justify-between px-4 lg:px-8">
           <button
-            className="lg:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-md"
+            className="lg:hidden p-2 -ml-2"
             onClick={() => setIsSidebarOpen(true)}
           >
             <Menu className="w-6 h-6" />
           </button>
           
-          <h1 className="text-xl font-semibold text-gray-900 ml-2 lg:ml-0">
-            {currentPageName}
-          </h1>
-
-          <div className="flex items-center gap-2 sm:gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-500 hover:text-indigo-600 hover:bg-indigo-50"
-              onClick={() => window.dispatchEvent(new Event('open-install-prompt'))}
-              title="Install App"
-            >
-              <Download className="w-5 h-5" />
-            </Button>
-
-            <button 
-              onClick={() => setIsChatOpen(!isChatOpen)}
-              className={`p-2 relative transition-colors ${isChatOpen ? 'text-indigo-600 bg-indigo-50 rounded-md' : 'text-gray-400 hover:text-gray-600'}`}
-              title="Team Chat"
-            >
-              <MessageSquare className="w-5 h-5" />
-            </button>
-            <NotificationsMenu />
-          </div>
+          <h1 className="text-xl font-semibold">{currentPageName}</h1>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-8">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
+          {children}
         </main>
       </div>
-      
-      <TeamChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
-      <UserPresence />
-      <PWAInstallPrompt />
-      <UserSettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} user={user} />
-      <Toaster />
-      </div>
-      );
-      }
+    </div>
+  );
+}

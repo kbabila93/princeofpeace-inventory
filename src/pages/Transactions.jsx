@@ -1,158 +1,91 @@
 import React, { useState } from 'react';
+import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { toast } from 'sonner';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { format } from 'date-fns';
-import { Search, Filter, ArrowUpRight, ArrowDownRight, Trash2, Loader2 } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
+import { Search, ArrowDownCircle, ArrowUpCircle, Settings } from "lucide-react";
 
 export default function Transactions() {
-  const [filterType, setFilterType] = useState('all');
-  const queryClient = useQueryClient();
-  const [isDeleting, setIsDeleting] = useState(false);
-  
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list('-date', 100), // Get last 100 transactions
+    queryFn: () => base44.entities.Transaction.list('-created_date'),
   });
 
-  const { data: user } = useQuery({
-    queryKey: ['me'],
-    queryFn: () => base44.auth.me(),
+  const filteredTransactions = transactions.filter(txn => {
+    const matchesSearch = (txn.product_name || "").toLowerCase().includes(search.toLowerCase());
+    const matchesType = typeFilter === "all" || txn.type === typeFilter;
+    return matchesSearch && matchesType;
   });
-
-  const canDelete = user?.role === 'admin' || (user?.permissions || []).includes('delete_transactions');
-
-  const filteredTransactions = transactions.filter(t => 
-    filterType === 'all' || t.type === filterType
-  );
-
-  const deleteAllMutation = useMutation({
-    mutationFn: async () => {
-      const promises = transactions.map(tx => base44.entities.Transaction.delete(tx.id));
-      await Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      toast.success("All recent transactions cleared");
-      setIsDeleting(false);
-    },
-    onError: () => {
-      toast.error("Failed to clear transactions");
-      setIsDeleting(false);
-    }
-  });
-
-  const handleDeleteAll = () => {
-    if (transactions.length === 0) return;
-    if (confirm("Are you sure you want to delete all recent transactions? This cannot be undone.")) {
-      setIsDeleting(true);
-      deleteAllMutation.mutate();
-    }
-  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-medium text-gray-900">Transaction History</h2>
-          <p className="text-sm text-gray-500">View recent stock movements</p>
+      <div className="flex gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input 
+            placeholder="Search transactions..." 
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-        <div className="flex items-center gap-3">
-          {canDelete && (
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteAll}
-              disabled={transactions.length === 0 || isDeleting}
-            >
-              {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
-              Clear History
-            </Button>
-          )}
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Transactions</SelectItem>
-              <SelectItem value="in">Stock In</SelectItem>
-              <SelectItem value="out">Stock Out</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="in">Stock In</SelectItem>
+            <SelectItem value="out">Stock Out</SelectItem>
+            <SelectItem value="adjustment">Adjustment</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Product</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Reason</TableHead>
-              <TableHead>Authorized By</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">Loading...</TableCell>
-              </TableRow>
-            ) : filteredTransactions.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                  No transactions found
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredTransactions.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell className="text-gray-500 text-sm">
-                    {format(new Date(tx.date), 'MMM d, yyyy h:mm a')}
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant="secondary" 
-                      className={
-                        tx.type === 'in' 
-                          ? 'bg-green-100 text-green-700 border-green-200' 
-                          : 'bg-red-100 text-red-700 border-red-200'
-                      }
-                    >
-                      {tx.type === 'in' ? (
-                        <><ArrowDownRight className="w-3 h-3 mr-1" /> In</>
-                      ) : (
-                        <><ArrowUpRight className="w-3 h-3 mr-1" /> Out</>
-                      )}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">{tx.product_name}</TableCell>
-                  <TableCell className={tx.type === 'in' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-                    {tx.type === 'in' ? '+' : '-'}{tx.quantity}
-                  </TableCell>
-                  <TableCell className="text-gray-600 capitalize">
-                    {tx.reason}
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500">
-                    {tx.authorized_by || '-'}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+      <div className="space-y-3">
+        {isLoading ? (
+          <Card className="p-8 text-center text-gray-500">Loading...</Card>
+        ) : filteredTransactions.length === 0 ? (
+          <Card className="p-8 text-center text-gray-500">No transactions found</Card>
+        ) : (
+          filteredTransactions.map((txn) => (
+            <Card key={txn.id} className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    txn.type === 'in' ? 'bg-green-100' : txn.type === 'out' ? 'bg-red-100' : 'bg-blue-100'
+                  }`}>
+                    {txn.type === 'in' ? (
+                      <ArrowDownCircle className="w-5 h-5 text-green-600" />
+                    ) : txn.type === 'out' ? (
+                      <ArrowUpCircle className="w-5 h-5 text-red-600" />
+                    ) : (
+                      <Settings className="w-5 h-5 text-blue-600" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold">{txn.product_name}</p>
+                    <p className="text-sm text-gray-500">{txn.reason}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className={`text-lg font-bold ${
+                    txn.type === 'in' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {txn.type === 'in' ? '+' : '-'}{txn.quantity}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {new Date(txn.date || txn.created_date).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

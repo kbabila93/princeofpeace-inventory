@@ -1,186 +1,140 @@
 import React, { useState } from 'react';
-import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { toast } from 'sonner';
+import { Loader2, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 
-export default function StockAdjustmentDialog({ isOpen, onClose, product, type, user }) {
-  const [quantity, setQuantity] = useState("");
-  const [reason, setReason] = useState("");
-  const [customReason, setCustomReason] = useState("");
-  const [authorizedBy, setAuthorizedBy] = useState("");
-  const [date, setDate] = useState("");
+export default function StockAdjustmentDialog({ isOpen, onClose, product, type }) {
+  const [quantity, setQuantity] = useState('');
+  const [reason, setReason] = useState('');
+
   const queryClient = useQueryClient();
 
-  React.useEffect(() => {
-    if (isOpen) {
-      setAuthorizedBy(user?.full_name || "");
-      // Set default date to now in local format for datetime-local input
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      setDate(now.toISOString().slice(0, 16));
-    }
-  }, [isOpen, user]);
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!product || !quantity) return;
 
-  const isStockIn = type === 'in';
-  
-  const adjustStockMutation = useMutation({
-    mutationFn: async (data) => {
-      // 1. Create transaction record
+      const qty = parseInt(quantity);
+      const newQuantity = type === 'in' 
+        ? (product.quantity || 0) + qty
+        : Math.max(0, (product.quantity || 0) - qty);
+
+      // Create transaction
       await base44.entities.Transaction.create({
         product_id: product.id,
         product_name: product.name,
         type: type,
-        quantity: Number(data.quantity),
-        reason: data.reason === 'other' ? data.customReason : data.reason,
-        authorized_by: data.authorizedBy,
-        date: data.date ? new Date(data.date).toISOString() : new Date().toISOString()
+        quantity: qty,
+        reason: reason || (type === 'in' ? 'Stock added' : 'Stock removed'),
+        date: new Date().toISOString()
       });
 
-      // 2. Update product quantity
-      const newQuantity = isStockIn 
-        ? (product.quantity || 0) + Number(data.quantity)
-        : (product.quantity || 0) - Number(data.quantity);
-
-      if (newQuantity < 0) {
-        throw new Error("Insufficient stock");
-      }
-
+      // Update product quantity
       await base44.entities.Product.update(product.id, {
-        quantity: newQuantity,
-        last_updated_by: user?.email || null
+        quantity: newQuantity
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      toast.success(`Stock ${isStockIn ? 'added' : 'removed'} successfully`);
+      toast.success('Stock updated');
       onClose();
-      setQuantity("");
-      setReason("");
-      setCustomReason("");
-      setAuthorizedBy("");
+      setQuantity('');
+      setReason('');
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to update stock");
+    onError: () => {
+      toast.error('Failed to update stock');
     }
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    adjustStockMutation.mutate({ quantity, reason, customReason, authorizedBy, date });
+    mutation.mutate();
   };
 
   if (!product) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {isStockIn ? 'Add Stock' : 'Remove Stock'} - {product.name}
+          <DialogTitle className="flex items-center gap-2">
+            {type === 'in' ? (
+              <>
+                <ArrowDownCircle className="w-5 h-5 text-green-600" />
+                Add Stock
+              </>
+            ) : (
+              <>
+                <ArrowUpCircle className="w-5 h-5 text-red-600" />
+                Remove Stock
+              </>
+            )}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Current Quantity</Label>
-            <div className="text-2xl font-bold">{product.quantity || 0}</div>
+
+        <div className="space-y-4">
+          <div className="bg-slate-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-600">Product</p>
+            <p className="font-semibold">{product.name}</p>
+            <p className="text-sm text-gray-600 mt-2">Current Stock: <span className="font-medium">{product.quantity || 0}</span></p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="quantity">Quantity to {isStockIn ? 'Add' : 'Remove'}</Label>
-            <Input
-              id="quantity"
-              type="number"
-              min="1"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              placeholder="0"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="reason">Reason</Label>
-            <Select value={reason} onValueChange={setReason} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select reason" />
-              </SelectTrigger>
-              <SelectContent>
-                {isStockIn ? (
-                  <>
-                    <SelectItem value="purchase">New Purchase</SelectItem>
-                    <SelectItem value="return">Customer Return</SelectItem>
-                    <SelectItem value="found">Inventory Found</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </>
-                ) : (
-                  <>
-                    <SelectItem value="sale">Sale</SelectItem>
-                    <SelectItem value="damage">Damage / Expired</SelectItem>
-                    <SelectItem value="theft">Loss / Theft</SelectItem>
-                    <SelectItem value="internal">Internal Use</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {reason === 'other' && (
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="customReason">Specify Reason</Label>
+              <Label>Quantity *</Label>
+              <Input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Reason</Label>
               <Textarea
-                id="customReason"
-                value={customReason}
-                onChange={(e) => setCustomReason(e.target.value)}
-                placeholder="Enter details..."
-                required
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder={type === 'in' ? 'e.g., New delivery, Restock' : 'e.g., Sale, Damage, Loss'}
+                rows={3}
               />
             </div>
-          )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="authorizedBy">Authorized By (Signature)</Label>
-              <Input
-                id="authorizedBy"
-                value={authorizedBy}
-                onChange={(e) => setAuthorizedBy(e.target.value)}
-                placeholder="Name / Signature"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="date">Date & Time</Label>
-              <Input
-                id="date"
-                type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </div>
-          </div>
+            {quantity && (
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-600">New stock level will be:</p>
+                <p className="text-xl font-bold text-blue-600">
+                  {type === 'in' 
+                    ? (product.quantity || 0) + parseInt(quantity)
+                    : Math.max(0, (product.quantity || 0) - parseInt(quantity))
+                  }
+                </p>
+              </div>
+            )}
 
-          <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button 
-              type="submit" 
-              className={isStockIn ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
-              disabled={adjustStockMutation.isPending}
-            >
-              {adjustStockMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {isStockIn ? 'Add to Inventory' : 'Remove from Inventory'}
-            </Button>
-          </DialogFooter>
-        </form>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={mutation.isPending}
+                className={type === 'in' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+              >
+                {mutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {type === 'in' ? 'Add' : 'Remove'} Stock
+              </Button>
+            </div>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

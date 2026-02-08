@@ -1,28 +1,10 @@
 import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  ArrowDownCircle, 
-  ArrowUpCircle,
-  AlertCircle,
-  Pencil,
-  Trash2,
-  Printer,
-  Share2,
-  Settings,
-  QrCode,
-  ArrowDownAZ,
-  ArrowUpZA,
-  Calendar,
-  X as XIcon
-  } from 'lucide-react';
-  import { jsPDF } from "jspdf";
-  import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -35,60 +17,34 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { 
+  Plus, 
+  Search, 
+  MoreVertical,
+  Pencil,
+  Trash2,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Camera,
+  AlertCircle,
+  Package
+} from 'lucide-react';
 import ProductForm from '@/components/inventory/ProductForm';
 import StockAdjustmentDialog from '@/components/inventory/StockAdjustmentDialog';
-import BatchManagerDialog from '@/components/inventory/BatchManagerDialog';
-import ShareProductDialog from '@/components/inventory/ShareProductDialog';
-import ScanLookupDialog from '@/components/inventory/ScanLookupDialog';
-import PrinterSettingsDialog from '@/components/inventory/PrinterSettingsDialog';
-import BulkEditDialog from '@/components/inventory/BulkEditDialog';
-import ProductDetailsDialog from '@/components/inventory/ProductDetailsDialog';
-import ImagePreviewDialog from '@/components/inventory/ImagePreviewDialog';
-import BulkPrintLabelsDialog from '@/components/inventory/BulkPrintLabelsDialog';
-import { useBarcodeScanner } from '../components/hooks/useBarcodeScanner';
+import BarcodeScannerDialog from '@/components/scanner/BarcodeScannerDialog';
 import { toast } from 'sonner';
-import { ScanBarcode, CheckSquare, XSquare, Layers, Download } from 'lucide-react';
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent } from "@/components/ui/card";
-import { createPageUrl } from '@/utils';
 
 export default function Inventory() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [sectionFilter, setSectionFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [initialSku, setInitialSku] = useState(null);
-  const [shareDialog, setShareDialog] = useState({ isOpen: false, product: null });
-  const [scanDialog, setScanDialog] = useState(false);
-  const [printerSettingsOpen, setPrinterSettingsOpen] = useState(false);
-  const [printerSettings, setPrinterSettings] = useState({ preset: 'standard', width: 50, height: 30, unit: 'mm' });
-
   const [stockAdjustment, setStockAdjustment] = useState({ isOpen: false, product: null, type: 'in' });
-  const [batchDialog, setBatchDialog] = useState({ isOpen: false, product: null });
-  
-  const [selectedIds, setSelectedIds] = useState([]);
-  const [bulkEditOpen, setBulkEditOpen] = useState(false);
-  const [bulkPrintOpen, setBulkPrintOpen] = useState(false);
-  const [viewingProduct, setViewingProduct] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -97,151 +53,29 @@ export default function Inventory() {
     queryFn: () => base44.entities.Product.list(),
   });
 
-  // Global scanner listener
-  useBarcodeScanner({
-    onScan: (code) => {
-      // Check if product exists
-      const product = products.find(p => p.sku === code);
-      if (product) {
-        setSearch(code);
-        toast.success(`Found: ${product.name}`);
-      } else {
-        // If not found, open form to create
-        setInitialSku(code);
-        setEditingProduct(null);
-        setIsProductFormOpen(true);
-        toast.info("Product not found. Create it?");
-      }
-    }
+  const filteredProducts = products.filter(product => {
+    const searchLower = search.toLowerCase();
+    const matchesSearch = product.name.toLowerCase().includes(searchLower) || 
+                         (product.sku || "").toLowerCase().includes(searchLower);
+    const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
+    return matchesSearch && matchesCategory;
   });
 
-  const { data: user } = useQuery({
-    queryKey: ['me'],
-    queryFn: () => base44.auth.me(),
-  });
-
-  const canDelete = user?.role === 'admin' || (user?.permissions || []).includes('delete_inventory');
+  const totalStock = filteredProducts.reduce((sum, p) => sum + (p.quantity || 0), 0);
+  const totalValue = filteredProducts.reduce((sum, p) => sum + ((p.quantity || 0) * (p.price || 0)), 0);
+  const lowStockCount = filteredProducts.filter(p => (p.quantity || 0) <= (p.low_stock_threshold || 10)).length;
 
   const handleDelete = async (id) => {
-    if (!canDelete) {
-      toast.error("You don't have permission to delete products");
-      return;
-    }
-    if (confirm("Are you sure you want to delete this product?")) {
+    if (confirm("Delete this product?")) {
       await base44.entities.Product.delete(id);
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success("Product deleted");
     }
   };
 
-  const filteredProducts = React.useMemo(() => {
-    console.log("Filtering with search:", search, "Products count:", products?.length);
-    return (products || []).filter(product => {
-      const searchLower = (search || "").toLowerCase();
-      const matchesSearch = (product.name || "").toLowerCase().includes(searchLower) || 
-                            (product.sku || "").toLowerCase().includes(searchLower);
-      const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
-      const matchesSection = sectionFilter === "all" || (product.section || "Main") === sectionFilter;
-      
-      let matchesStatus = true;
-      if (statusFilter === "low_stock") {
-        matchesStatus = (product.quantity || 0) <= (product.low_stock_threshold || 10);
-      } else if (statusFilter === "out_of_stock") {
-        matchesStatus = (product.quantity || 0) === 0;
-      }
-
-      // Date filtering
-      let matchesDate = true;
-      if (startDate || endDate) {
-        const productDate = new Date(product.created_date);
-        if (startDate) {
-          const start = new Date(startDate);
-          start.setHours(0, 0, 0, 0);
-          matchesDate = matchesDate && productDate >= start;
-        }
-        if (endDate) {
-          const end = new Date(endDate);
-          end.setHours(23, 59, 59, 999);
-          matchesDate = matchesDate && productDate <= end;
-        }
-      }
-
-      return matchesSearch && matchesCategory && matchesSection && matchesStatus && matchesDate;
-    }).sort((a, b) => {
-      const nameA = (a.name || "").toLowerCase();
-      const nameB = (b.name || "").toLowerCase();
-      if (sortOrder === 'asc') {
-        return nameA.localeCompare(nameB);
-      } else {
-        return nameB.localeCompare(nameA);
-      }
-    });
-  }, [products, search, categoryFilter, sectionFilter, statusFilter, sortOrder, startDate, endDate]);
-
-  // Group products by first letter
-  const groupedProducts = React.useMemo(() => {
-    const groups = {};
-    filteredProducts.forEach(product => {
-      const firstLetter = (product.name || "?")[0].toUpperCase();
-      if (!groups[firstLetter]) {
-        groups[firstLetter] = [];
-      }
-      groups[firstLetter].push(product);
-    });
-    return groups;
-  }, [filteredProducts]);
-
-  // Get unique sections for filter
-  const uniqueSections = [...new Set((products || []).map(p => p.section || "Main"))].sort();
-
-  // Calculate totals
-  const totalStock = filteredProducts.reduce((sum, p) => sum + (p.quantity || 0), 0);
-  
-  const totalCostByCurrency = filteredProducts.reduce((acc, p) => {
-    const curr = p.currency || 'USD';
-    const val = (p.quantity || 0) * (p.cost_price || 0);
-    acc[curr] = (acc[curr] || 0) + val;
-    return acc;
-  }, {});
-
-  const totalRetailByCurrency = filteredProducts.reduce((acc, p) => {
-    const curr = p.currency || 'USD';
-    const val = (p.quantity || 0) * (p.price || 0);
-    acc[curr] = (acc[curr] || 0) + val;
-    return acc;
-  }, {});
-
-  const totalProfitByCurrency = filteredProducts.reduce((acc, p) => {
-    const curr = p.currency || 'USD';
-    const cost = (p.quantity || 0) * (p.cost_price || 0);
-    const retail = (p.quantity || 0) * (p.price || 0);
-    acc[curr] = (acc[curr] || 0) + (retail - cost);
-    return acc;
-  }, {});
-
-  const formatCurrencyTotals = (totals) => {
-    const entries = Object.entries(totals);
-    if (entries.length === 0) return "0.00";
-    return entries.map(([curr, val]) => `${curr} ${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`).join(' + ');
-  };
-
   const handleEdit = (product) => {
     setEditingProduct(product);
     setIsProductFormOpen(true);
-  };
-
-  const handleToggleSelect = (id) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    );
-  };
-
-  const handleSelectAll = (checked) => {
-    if (checked) {
-      setSelectedIds(filteredProducts.map(p => p.id));
-    } else {
-      setSelectedIds([]);
-    }
   };
 
   const handleCreate = () => {
@@ -250,367 +84,70 @@ export default function Inventory() {
     setIsProductFormOpen(true);
   };
 
-  const handleScanResult = ({ sku, product }) => {
+  const handleScanResult = (code) => {
+    const product = products.find(p => p.sku === code);
     if (product) {
-      setSearch(sku); // Filter to show the product
-      toast.success("Product found");
+      setSearch(code);
+      toast.success(`Found: ${product.name}`);
     } else {
-      toast.info("Product not found. Create it now.");
+      setInitialSku(code);
       setEditingProduct(null);
-      setInitialSku(sku);
       setIsProductFormOpen(true);
+      toast.info("Product not found. Create it?");
     }
-  };
-
-  const openStockAdjustment = (product, type) => {
-    setStockAdjustment({ isOpen: true, product, type });
-  };
-
-  const handlePrintLabel = (product) => {
-    const sku = product.sku || "NO SKU";
-    const printWindow = window.open('', '_blank', `width=${printerSettings.width * 10},height=${printerSettings.height * 10}`);
-
-    if (!printWindow) {
-      toast.error("Please allow popups to print labels");
-      return;
-    }
-
-    const safeName = product.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const safeSku = sku.replace(/"/g, '\\"');
-    const logoUrl = user?.store_logo || '';
-    const quickSaleUrl = `${window.location.origin}${createPageUrl('QuickSale')}?sku=${encodeURIComponent(product.sku || '')}`;
-
-    console.log('Logo URL:', logoUrl); // Debug
-
-    if (!logoUrl) {
-      toast.info("No logo set. You can upload one in the Marketing page.");
-    }
-
-    // CSS to match selected dimensions
-    const widthStyle = `${printerSettings.width}${printerSettings.unit}`;
-    const heightStyle = `${printerSettings.height}${printerSettings.unit}`;
-
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Label - ${safeName}</title>
-          <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-          <style>
-            @page {
-              size: ${widthStyle} ${heightStyle};
-              margin: 0;
-            }
-            body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-              padding: 0;
-              width: ${widthStyle};
-              height: ${heightStyle};
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              overflow: hidden;
-            }
-            .label-content {
-              text-align: center;
-              width: 95%;
-              height: 95%;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              align-items: center;
-              position: relative;
-            }
-            .logo {
-              position: absolute;
-              top: 2px;
-              right: 2px;
-              width: 20px;
-              height: 20px;
-              object-fit: contain;
-            }
-            .product-image {
-              width: 50px;
-              height: 50px;
-              object-fit: cover;
-              border-radius: 4px;
-              margin-bottom: 4px;
-            }
-            #barcode { 
-              width: 100%; 
-              height: auto; 
-              max-height: 50%;
-              display: block; 
-            }
-            .product-name { 
-              font-size: 10px; 
-              font-weight: bold; 
-              margin-bottom: 2px;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              max-width: 100%;
-            }
-            .price { 
-              font-size: 12px; 
-              font-weight: bold; 
-            }
-            .scan-info {
-              font-size: 7px;
-              color: #3b82f6;
-              margin-top: 2px;
-              font-style: italic;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="label-content">
-            ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="logo" />` : ''}
-            ${product.image_url ? `<img src="${product.image_url}" alt="${safeName}" class="product-image" />` : ''}
-            <div class="product-name">${safeName}</div>
-            <svg id="barcode"></svg>
-            <div class="price">${product.currency || '$'} ${Number(product.price).toFixed(2)}</div>
-            <div class="scan-info">Scan label to record sale</div>
-          </div>
-          <script>
-            window.onload = function() {
-              try {
-                JsBarcode("#barcode", "${safeSku}", {
-                  format: "CODE128",
-                  width: 2,
-                  height: 40,
-                  displayValue: true,
-                  margin: 0,
-                  fontSize: 10
-                });
-
-                // Wait for all images to load
-                const images = document.querySelectorAll('img');
-                if (images.length > 0) {
-                  let loadedCount = 0;
-                  images.forEach(img => {
-                    if (img.complete) {
-                      loadedCount++;
-                    } else {
-                      img.onload = () => {
-                        loadedCount++;
-                        if (loadedCount === images.length) {
-                          setTimeout(() => window.print(), 500);
-                        }
-                      };
-                      img.onerror = () => {
-                        loadedCount++;
-                        if (loadedCount === images.length) {
-                          setTimeout(() => window.print(), 500);
-                        }
-                      };
-                    }
-                  });
-                  if (loadedCount === images.length) {
-                    setTimeout(() => window.print(), 500);
-                  }
-                } else {
-                  setTimeout(() => window.print(), 500);
-                }
-              } catch (e) {
-                console.error(e);
-                setTimeout(() => window.print(), 500);
-              }
-            };
-          </script>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-  };
-
-  const handlePrintMultipleLabels = () => {
-    const selectedProducts = filteredProducts.filter(p => selectedIds.includes(p.id));
-    if (selectedProducts.length === 0) {
-      toast.error("No products selected");
-      return;
-    }
-    setBulkPrintOpen(true);
-  };
-
-  const handleShare = (product) => {
-    if (navigator.share) {
-      navigator.share({
-        title: product.name,
-        text: `Check out ${product.name} - ${product.currency} ${Number(product.price).toFixed(2)}`,
-        url: `${window.location.origin}/Inventory?search=${encodeURIComponent(product.sku || product.name)}`
-      }).catch((error) => console.log('Error sharing', error));
-    } else {
-      setShareDialog({ isOpen: true, product });
-    }
-  };
-
-  const handlePrintReport = () => {
-    const doc = new jsPDF();
-
-    doc.setFontSize(20);
-    doc.text("Inventory Report", 14, 22);
-    
-    doc.setFontSize(10);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 30);
-    
-    // Headers
-    let yPos = 40;
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("Product", 14, yPos);
-    doc.text("SKU", 80, yPos);
-    doc.text("Category", 110, yPos);
-    doc.text("Stock", 140, yPos);
-    doc.text("Price", 170, yPos);
-    
-    doc.line(14, yPos + 2, 196, yPos + 2);
-    
-    yPos += 8;
-    doc.setFont("helvetica", "normal");
-    
-    filteredProducts.forEach((product) => {
-        if (yPos > 280) {
-            doc.addPage();
-            yPos = 20;
-        }
-        
-        doc.text(product.name.substring(0, 30), 14, yPos);
-        doc.text(product.sku || "-", 80, yPos);
-        doc.text(product.category || "-", 110, yPos);
-        doc.text(String(product.quantity), 140, yPos);
-        doc.text(`${product.currency || '$'} ${Number(product.price).toFixed(2)}`, 170, yPos);
-        
-        yPos += 7;
-    });
-    
-    doc.save("inventory-report.pdf");
-  };
-
-  const handleExportToShopify = () => {
-    // Shopify CSV format
-    const headers = [
-      'Handle', 'Title', 'Body (HTML)', 'Vendor', 'Type', 'Tags',
-      'Published', 'Option1 Name', 'Option1 Value', 'Variant SKU',
-      'Variant Grams', 'Variant Inventory Tracker', 'Variant Inventory Qty',
-      'Variant Inventory Policy', 'Variant Fulfillment Service',
-      'Variant Price', 'Variant Compare At Price', 'Variant Requires Shipping',
-      'Variant Taxable', 'Variant Barcode', 'Image Src', 'Image Position',
-      'Image Alt Text', 'Gift Card', 'SEO Title', 'SEO Description',
-      'Variant Image', 'Variant Weight Unit', 'Cost per item'
-    ];
-
-    const rows = filteredProducts.map(product => {
-      const handle = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      return [
-        handle,
-        product.name,
-        product.description || '',
-        'StockFlow',
-        product.category || 'Other',
-        product.category || '',
-        'TRUE',
-        'Title',
-        'Default Title',
-        product.sku || '',
-        '', // Weight in grams
-        'shopify',
-        product.quantity || 0,
-        'deny',
-        'manual',
-        product.price || 0,
-        '', // Compare at price
-        'TRUE',
-        'TRUE',
-        product.sku || '',
-        product.image_url || '',
-        '1',
-        product.name,
-        'FALSE',
-        product.name,
-        product.description || '',
-        product.image_url || '',
-        'g',
-        product.cost_price || ''
-      ];
-    });
-
-    // Convert to CSV
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-    ].join('\n');
-
-    // Download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `shopify-products-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success('Products exported to Shopify CSV format');
   };
 
   return (
-  <div className="space-y-6">
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <Card>
-        <CardContent className="p-4 flex flex-col gap-1">
-           <span className="text-sm font-medium text-gray-500">Total Stock Items</span>
-           <span className="text-2xl font-bold text-gray-900">{totalStock.toLocaleString()}</span>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4 flex flex-col gap-1">
-           <span className="text-sm font-medium text-gray-500">Total Cost (Asset Value)</span>
-           <span className="text-2xl font-bold text-blue-600">{formatCurrencyTotals(totalCostByCurrency)}</span>
-           <span className="text-xs text-gray-400">Sum of (Cost × Quantity)</span>
-        </CardContent>
-      </Card>
-      <Card>
-         <CardContent className="p-4 flex flex-col gap-1">
-           <span className="text-sm font-medium text-gray-500">Total Retail Value</span>
-           <span className="text-2xl font-bold text-purple-600">{formatCurrencyTotals(totalRetailByCurrency)}</span>
-           <span className="text-xs text-gray-400">Sum of (Price × Quantity)</span>
-        </CardContent>
-      </Card>
-      <Card>
-         <CardContent className="p-4 flex flex-col gap-1">
-           <span className="text-sm font-medium text-gray-500">Projected Profit</span>
-           <span className="text-2xl font-bold text-green-600">{formatCurrencyTotals(totalProfitByCurrency)}</span>
-           <span className="text-xs text-gray-400">Retail Value - Total Cost</span>
-        </CardContent>
-      </Card>
-    </div>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Stock</p>
+                <p className="text-2xl font-bold">{totalStock.toLocaleString()}</p>
+              </div>
+              <Package className="w-8 h-8 text-gray-400" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Value</p>
+                <p className="text-2xl font-bold">${totalValue.toFixed(2)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Low Stock</p>
+                <p className="text-2xl font-bold text-orange-600">{lowStockCount}</p>
+              </div>
+              <AlertCircle className="w-8 h-8 text-orange-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-    <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="flex flex-col sm:flex-row gap-4 flex-1">
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <div className="flex gap-4 flex-1">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none z-10" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input 
               placeholder="Search products..." 
-              className="pl-9 !text-gray-900 bg-white"
+              className="pl-9"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              type="text"
-              autoComplete="off"
-              style={{ color: '#111827 !important', backgroundColor: 'white' }}
             />
           </div>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-[180px]">
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4" />
-                <SelectValue placeholder="Category" />
-              </div>
+              <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
@@ -622,183 +159,54 @@ export default function Inventory() {
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={sectionFilter} onValueChange={setSectionFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Section" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sections</SelectItem>
-              {uniqueSections.map(section => (
-                <SelectItem key={section} value={section}>{section}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Stock Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="low_stock">Low Stock</SelectItem>
-              <SelectItem value="out_of_stock">Out of Stock</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            <Input 
-              type="date" 
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              placeholder="From date"
-              className="w-[150px]"
-            />
-            <span className="text-gray-400">to</span>
-            <Input 
-              type="date" 
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              placeholder="To date"
-              className="w-[150px]"
-            />
-            {(startDate || endDate) && (
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => {
-                  setStartDate("");
-                  setEndDate("");
-                }}
-                title="Clear dates"
-              >
-                <XIcon className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-          </div>
+        </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-            title={sortOrder === 'asc' ? "Sort Z-A" : "Sort A-Z"}
-          >
-            {sortOrder === 'asc' ? <ArrowDownAZ className="w-4 h-4" /> : <ArrowUpZA className="w-4 h-4" />}
+          <Button onClick={() => setIsScannerOpen(true)} variant="outline">
+            <Camera className="w-4 h-4 mr-2" />
+            Scan
           </Button>
-          <Button onClick={() => setScanDialog(true)} variant="outline" title="Manual Scan / Lookup">
-            <ScanBarcode className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">Scan</span>
-          </Button>
-          <Button onClick={() => setPrinterSettingsOpen(true)} variant="outline" size="icon" title="Printer Settings">
-            <Settings className="w-4 h-4" />
+          <Button onClick={handleCreate} className="bg-indigo-600 hover:bg-indigo-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Product
           </Button>
         </div>
-        <Button onClick={handleExportToShopify} variant="outline" disabled={filteredProducts.length === 0}>
-          <Download className="w-4 h-4 mr-2" />
-          Export to Shopify
-        </Button>
-        <Button onClick={handlePrintReport} variant="outline">
-          <Printer className="w-4 h-4 mr-2" />
-          Print List
-        </Button>
-        <Button onClick={handleCreate} className="bg-indigo-600 hover:bg-indigo-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Product
-        </Button>
       </div>
-
-      {selectedIds.length > 0 && (
-        <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-lg flex items-center justify-between animate-in slide-in-from-top-2">
-          <div className="flex items-center gap-3">
-            <CheckSquare className="w-5 h-5 text-indigo-600" />
-            <span className="font-medium text-indigo-900">{selectedIds.length} products selected</span>
-          </div>
-          <div className="flex items-center gap-2">
-             <Button variant="outline" size="sm" onClick={() => setSelectedIds([])} className="bg-white hover:bg-indigo-50 text-indigo-700 border-indigo-200">
-              <XSquare className="w-4 h-4 mr-2" />
-              Cancel Selection
-            </Button>
-            <Button variant="outline" size="sm" onClick={handlePrintMultipleLabels} className="bg-white hover:bg-green-50 text-green-700 border-green-200">
-              <Printer className="w-4 h-4 mr-2" />
-              Print Labels
-            </Button>
-            <Button size="sm" onClick={() => setBulkEditOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
-              <Layers className="w-4 h-4 mr-2" />
-              Bulk Edit
-            </Button>
-          </div>
-        </div>
-      )}
 
       <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[50px]">
-                <Checkbox 
-                  checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
-                  onCheckedChange={handleSelectAll}
-                />
-              </TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Section</TableHead>
               <TableHead>Price</TableHead>
-              <TableHead>Stock Level</TableHead>
+              <TableHead>Stock</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Last Updated</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-10 text-gray-500">
-                  Loading inventory...
+                <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                  Loading...
                 </TableCell>
               </TableRow>
             ) : filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-10 text-gray-500">
-                  No products found.
+                <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                  No products found
                 </TableCell>
               </TableRow>
             ) : (
-              Object.keys(groupedProducts).sort().map((letter) => (
-                <React.Fragment key={letter}>
-                  <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableCell colSpan={9} className="font-bold text-indigo-600 text-lg py-3">
-                      {letter}
-                    </TableCell>
-                  </TableRow>
-                  {groupedProducts[letter].map((product) => {
+              filteredProducts.map((product) => {
                 const isLowStock = (product.quantity || 0) <= (product.low_stock_threshold || 10);
                 const isOutOfStock = (product.quantity || 0) === 0;
 
                 return (
-                  <TableRow 
-                    key={product.id} 
-                    className={`cursor-pointer transition-colors hover:bg-gray-50 ${selectedIds.includes(product.id) ? "bg-indigo-50/50" : ""}`}
-                    onClick={(e) => {
-                      if (e.target.closest('[role="checkbox"]') || e.target.closest('button') || e.target.closest('[role="menuitem"]')) return;
-                      setViewingProduct(product);
-                    }}
-                  >
-                    <TableCell>
-                      <Checkbox 
-                        checked={selectedIds.includes(product.id)}
-                        onCheckedChange={() => handleToggleSelect(product.id)}
-                      />
-                    </TableCell>
+                  <TableRow key={product.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div 
-                          className={`w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center overflow-hidden ${product.image_url ? 'cursor-zoom-in hover:ring-2 hover:ring-indigo-200 transition-all' : ''}`}
-                          onClick={(e) => e.stopPropagation()}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation();
-                            if (product.image_url) setPreviewImage({ url: product.image_url, name: product.name });
-                          }}
-                        >
+                        <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
                           {product.image_url ? (
                             <img src={product.image_url} alt="" className="w-full h-full object-cover" />
                           ) : (
@@ -808,62 +216,45 @@ export default function Inventory() {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{product.name}</p>
+                          <p className="font-medium">{product.name}</p>
                           <p className="text-xs text-gray-500">{product.sku || 'No SKU'}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="capitalize">{product.category}</TableCell>
-                    <TableCell>{product.section || "Main"}</TableCell>
-                    <TableCell>{product.currency || '$'} {Number(product.price).toFixed(2)}</TableCell>
+                    <TableCell>${Number(product.price).toFixed(2)}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{product.quantity}</span>
-                        <span className="text-xs text-gray-400">/ {product.low_stock_threshold} min</span>
-                      </div>
+                      <span className="font-medium">{product.quantity}</span>
+                      <span className="text-xs text-gray-400"> / {product.low_stock_threshold}</span>
                     </TableCell>
                     <TableCell>
                       {isOutOfStock ? (
-                        <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200">
-                          Out of Stock
-                        </Badge>
+                        <Badge variant="destructive">Out of Stock</Badge>
                       ) : isLowStock ? (
-                        <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-orange-200">
+                        <Badge variant="secondary" className="bg-orange-100 text-orange-700">
                           <AlertCircle className="w-3 h-3 mr-1" /> Low Stock
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">
                           In Stock
                         </Badge>
                       )}
-                      </TableCell>
-                      <TableCell>
-                      <div className="flex flex-col text-xs">
-                        <span className="font-medium text-gray-700">
-                          {product.last_updated_by || product.created_by || "System"}
-                        </span>
-                        <span className="text-gray-400">
-                          {new Date(product.updated_date || product.created_date).toLocaleDateString()}
-                        </span>
-                      </div>
-                      </TableCell>
-                      <TableCell className="text-right">
+                    </TableCell>
+                    <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-                          title="Add Stock"
-                          onClick={() => openStockAdjustment(product, 'in')}
+                          className="h-8 w-8 text-green-600"
+                          onClick={() => setStockAdjustment({ isOpen: true, product, type: 'in' })}
                         >
                           <ArrowDownCircle className="w-5 h-5" />
                         </Button>
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          title="Remove Stock"
-                          onClick={() => openStockAdjustment(product, 'out')}
+                          className="h-8 w-8 text-red-600"
+                          onClick={() => setStockAdjustment({ isOpen: true, product, type: 'out' })}
                         >
                           <ArrowUpCircle className="w-5 h-5" />
                         </Button>
@@ -874,64 +265,32 @@ export default function Inventory() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => setBatchDialog({ isOpen: true, product })}>
-                              <div className="flex items-center">
-                                <span className="w-4 h-4 mr-2 flex items-center justify-center font-bold text-[10px] border border-current rounded bg-transparent">B</span>
-                                Manage Batches
-                              </div>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handlePrintLabel(product)}>
-                              <Printer className="w-4 h-4 mr-2" /> Print Label
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleShare(product)}>
-                              <Share2 className="w-4 h-4 mr-2" /> Share Product
-                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEdit(product)}>
-                              <Pencil className="w-4 h-4 mr-2" /> Edit Details
+                              <Pencil className="w-4 h-4 mr-2" /> Edit
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {canDelete && (
-                              <DropdownMenuItem 
-                                className="text-red-600 focus:text-red-600"
-                                onClick={() => handleDelete(product.id)}
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" /> Delete
-                              </DropdownMenuItem>
-                            )}
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => handleDelete(product.id)}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" /> Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>
                 );
-                })}
-                </React.Fragment>
-                ))
-                )}
-                </TableBody>
-                </Table>
-                </div>
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       <ProductForm 
         isOpen={isProductFormOpen} 
         onClose={() => setIsProductFormOpen(false)} 
         product={editingProduct}
         initialSku={initialSku}
-        user={user}
-      />
-
-      <ScanLookupDialog
-        isOpen={scanDialog}
-        onClose={() => setScanDialog(false)}
-        onScan={handleScanResult}
-      />
-
-      <PrinterSettingsDialog 
-        isOpen={printerSettingsOpen}
-        onClose={() => setPrinterSettingsOpen(false)}
-        settings={printerSettings}
-        onSave={setPrinterSettings}
       />
 
       <StockAdjustmentDialog
@@ -939,48 +298,13 @@ export default function Inventory() {
         onClose={() => setStockAdjustment({ ...stockAdjustment, isOpen: false })}
         product={stockAdjustment.product}
         type={stockAdjustment.type}
-        user={user}
       />
 
-      <ShareProductDialog 
-        isOpen={shareDialog.isOpen} 
-        onClose={() => setShareDialog({ ...shareDialog, isOpen: false })} 
-        product={shareDialog.product} 
+      <BarcodeScannerDialog 
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScan={handleScanResult}
       />
-
-      <BatchManagerDialog 
-        isOpen={batchDialog.isOpen} 
-        onClose={() => setBatchDialog({ ...batchDialog, isOpen: false })} 
-        product={batchDialog.product} 
-      />
-
-      <BulkEditDialog
-        isOpen={bulkEditOpen}
-        onClose={() => setBulkEditOpen(false)}
-        selectedIds={selectedIds}
-        onComplete={() => setSelectedIds([])}
-      />
-
-      <ProductDetailsDialog 
-        isOpen={!!viewingProduct}
-        onClose={() => setViewingProduct(null)}
-        product={viewingProduct}
-        onEdit={handleEdit}
-      />
-
-      <ImagePreviewDialog 
-        isOpen={!!previewImage}
-        onClose={() => setPreviewImage(null)}
-        image={previewImage}
-      />
-
-      <BulkPrintLabelsDialog
-        isOpen={bulkPrintOpen}
-        onClose={() => setBulkPrintOpen(false)}
-        products={filteredProducts.filter(p => selectedIds.includes(p.id))}
-        printerSettings={printerSettings}
-        user={user}
-      />
-      </div>
-      );
-      }
+    </div>
+  );
+}

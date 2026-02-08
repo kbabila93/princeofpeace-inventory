@@ -158,16 +158,10 @@ export default function BarcodeScannerDialog({ isOpen, onClose, onScan }) {
                 )}
               </div>
               
-              <div className="text-center space-y-3">
+              <div className="text-center">
                 <p className="text-sm text-gray-600">
-                  Position the barcode within the frame - scanning automatically
+                  Position the barcode within the frame
                 </p>
-                <div className="flex justify-center gap-2 flex-wrap">
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded">QR Code</span>
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded">CODE128</span>
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded">EAN13</span>
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded">UPC</span>
-                </div>
               </div>
             </>
           )}
