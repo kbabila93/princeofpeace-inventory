@@ -56,7 +56,7 @@ export default function Orders() {
     completed: orders.filter(o => o.status === 'completed').length,
   };
 
-  const shopUrl = `${window.location.origin}${createPageUrl('Shop')}`;
+  const shopUrl = `${window.location.origin}${createPageUrl('PublicShop')}`;
 
   const copyShopLink = () => {
     navigator.clipboard.writeText(shopUrl);
