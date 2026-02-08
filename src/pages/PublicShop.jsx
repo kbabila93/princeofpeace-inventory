@@ -24,6 +24,29 @@ export default function PublicShop() {
   });
   const queryClient = useQueryClient();
 
+  const { data: shopSettings = [] } = useQuery({
+    queryKey: ['shop-settings'],
+    queryFn: () => base44.entities.ShopSettings.list(),
+  });
+
+  const settings = shopSettings[0] || {
+    shop_name: "StockFlow Shop",
+    tagline: "Quality products delivered to you",
+    hero_title: "Welcome to Our Store",
+    hero_subtitle: "Discover amazing products at great prices",
+    primary_color: "#4f46e5",
+    secondary_color: "#9333ea",
+    footer_text: "Quality products, excellent service",
+    font_style: "modern"
+  };
+
+  const fontClasses = {
+    modern: "font-sans",
+    classic: "font-serif",
+    playful: "font-mono",
+    elegant: "font-serif"
+  };
+
   useEffect(() => {
     const savedCart = localStorage.getItem('public_shop_cart');
     if (savedCart) {
@@ -147,24 +170,35 @@ export default function PublicShop() {
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className={`min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 ${fontClasses[settings.font_style]}`}>
+      <style>{`
+        :root {
+          --primary-color: ${settings.primary_color};
+          --secondary-color: ${settings.secondary_color};
+        }
+      `}</style>
       <header className="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-20 border-b border-indigo-100">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Store className="w-7 h-7 text-white" />
-              </div>
+              {settings.logo_url ? (
+                <img src={settings.logo_url} alt="Logo" className="h-12 w-auto object-contain" />
+              ) : (
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style={{ background: `linear-gradient(to bottom right, ${settings.primary_color}, ${settings.secondary_color})` }}>
+                  <Store className="w-7 h-7 text-white" />
+                </div>
+              )}
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  StockFlow Shop
+                <h1 className="text-2xl font-bold" style={{ background: `linear-gradient(to right, ${settings.primary_color}, ${settings.secondary_color})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                  {settings.shop_name}
                 </h1>
-                <p className="text-xs text-gray-500">Quality products delivered to you</p>
+                <p className="text-xs text-gray-500">{settings.tagline}</p>
               </div>
             </div>
             <Button 
               onClick={() => setIsCartOpen(true)} 
-              className="relative bg-indigo-600 hover:bg-indigo-700 shadow-md"
+              className="relative shadow-md"
+              style={{ backgroundColor: settings.primary_color, color: 'white' }}
             >
               <ShoppingCart className="w-5 h-5 mr-2" />
               Cart
@@ -178,10 +212,19 @@ export default function PublicShop() {
         </div>
       </header>
 
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-3">Welcome to Our Store</h2>
-          <p className="text-lg text-indigo-100">Discover amazing products at great prices</p>
+      <div 
+        className="text-white py-12 relative overflow-hidden"
+        style={{ 
+          background: settings.banner_image_url 
+            ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${settings.banner_image_url})` 
+            : `linear-gradient(to right, ${settings.primary_color}, ${settings.secondary_color})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold mb-3">{settings.hero_title}</h2>
+          <p className="text-lg opacity-90">{settings.hero_subtitle}</p>
         </div>
       </div>
 
@@ -254,7 +297,8 @@ export default function PublicShop() {
                     </div>
                     <Button 
                       onClick={() => addToCart(product)}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700"
+                      className="w-full"
+                      style={{ backgroundColor: settings.primary_color, color: 'white' }}
                       disabled={product.quantity === 0}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
@@ -271,11 +315,15 @@ export default function PublicShop() {
       <footer className="bg-gray-900 text-white mt-20 py-12">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Store className="w-6 h-6" />
-            <span className="text-xl font-bold">StockFlow Shop</span>
+            {settings.logo_url ? (
+              <img src={settings.logo_url} alt="Logo" className="h-8 w-auto object-contain brightness-0 invert" />
+            ) : (
+              <Store className="w-6 h-6" />
+            )}
+            <span className="text-xl font-bold">{settings.shop_name}</span>
           </div>
-          <p className="text-gray-400">Quality products, excellent service</p>
-          <p className="text-gray-500 text-sm mt-4">© 2026 StockFlow. All rights reserved.</p>
+          <p className="text-gray-400">{settings.footer_text}</p>
+          <p className="text-gray-500 text-sm mt-4">© 2026 {settings.shop_name}. All rights reserved.</p>
         </div>
       </footer>
 
@@ -336,7 +384,7 @@ export default function PublicShop() {
                     {cart[0]?.currency || 'USD'} {cartTotal.toFixed(2)}
                   </span>
                 </div>
-                <Button onClick={handleCheckout} className="w-full bg-indigo-600 hover:bg-indigo-700">
+                <Button onClick={handleCheckout} className="w-full" style={{ backgroundColor: settings.primary_color, color: 'white' }}>
                   Proceed to Checkout
                 </Button>
               </div>
@@ -414,7 +462,8 @@ export default function PublicShop() {
 
             <Button 
               type="submit" 
-              className="w-full bg-indigo-600 hover:bg-indigo-700"
+              className="w-full"
+              style={{ backgroundColor: settings.primary_color, color: 'white' }}
               disabled={createOrderMutation.isPending}
             >
               {createOrderMutation.isPending ? 'Placing Order...' : 'Place Order'}

@@ -71,6 +71,7 @@ export default function Layout({ children, currentPageName }) {
 
   const navigation = [
     { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard, permission: 'view_dashboard' },
+    { name: 'Shop Customization', href: 'ShopCustomization', icon: Settings, permission: 'view_dashboard' },
     { name: 'Customer Shop Link', href: 'Shop', icon: ShoppingCart, permission: 'view_dashboard' },
     { name: 'Customer Orders', href: 'Orders', icon: Package, permission: 'view_dashboard' },
     { name: 'Business Analytics', href: 'BusinessAnalytics', icon: TrendingUp, permission: 'view_dashboard' },

@@ -71,6 +71,7 @@ import CustomerShop from './pages/CustomerShop';
 import Shop from './pages/Shop';
 import Orders from './pages/Orders';
 import PublicShop from './pages/PublicShop';
+import ShopCustomization from './pages/ShopCustomization';
 import __Layout from './Layout.jsx';
 
 
@@ -99,6 +100,7 @@ export const PAGES = {
     "Shop": Shop,
     "Orders": Orders,
     "PublicShop": PublicShop,
+    "ShopCustomization": ShopCustomization,
 }
 
 export const pagesConfig = {
