@@ -69,6 +69,7 @@ import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
 import CustomerShop from './pages/CustomerShop';
 import Shop from './pages/Shop';
+import Orders from './pages/Orders';
 import __Layout from './Layout.jsx';
 
 
@@ -95,6 +96,7 @@ export const PAGES = {
     "VideoConference": VideoConference,
     "CustomerShop": CustomerShop,
     "Shop": Shop,
+    "Orders": Orders,
 }
 
 export const pagesConfig = {
