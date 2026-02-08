@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   Settings,
   TrendingUp,
+  ShoppingCart,
   Image as ImageIcon
   } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ export default function Layout({ children, currentPageName }) {
 
   const navigation = [
     { name: 'Dashboard', href: 'Dashboard', icon: LayoutDashboard, permission: 'view_dashboard' },
+    { name: 'Customer Shop', href: 'CustomerShop', icon: ShoppingCart, permission: 'view_dashboard' },
     { name: 'Business Analytics', href: 'BusinessAnalytics', icon: TrendingUp, permission: 'view_dashboard' },
     { name: 'Quick Sale', href: 'QuickSale', icon: Receipt, permission: 'manage_sales' },
     { name: 'Sales', href: 'Sales', icon: DollarSign, permission: 'manage_sales' },
