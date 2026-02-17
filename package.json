@@ -77,7 +77,8 @@
     "three": "^0.171.0",
     "vaul": "^1.1.2",
     "zod": "^3.24.2",
-    "@zxing/browser": "^0.1.5"
+    "@zxing/browser": "^0.1.5",
+    "react-barcode": "^1.5.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
