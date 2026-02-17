@@ -50,6 +50,7 @@
 import AdvertGenerator from './pages/AdvertGenerator';
 import Announcements from './pages/Announcements';
 import BusinessAnalytics from './pages/BusinessAnalytics';
+import CustomerShop from './pages/CustomerShop';
 import Customers from './pages/Customers';
 import DamagedInventory from './pages/DamagedInventory';
 import Dashboard from './pages/Dashboard';
@@ -58,20 +59,19 @@ import Expenditures from './pages/Expenditures';
 import Home from './pages/Home';
 import Inventory from './pages/Inventory';
 import InventorySections from './pages/InventorySections';
+import Orders from './pages/Orders';
 import ProductSalesReport from './pages/ProductSalesReport';
+import PublicShop from './pages/PublicShop';
 import QuickSale from './pages/QuickSale';
 import Sales from './pages/Sales';
 import SalesBySections from './pages/SalesBySections';
+import Shop from './pages/Shop';
+import ShopCustomization from './pages/ShopCustomization';
 import ShopGallery from './pages/ShopGallery';
 import Suppliers from './pages/Suppliers';
 import Transactions from './pages/Transactions';
 import Users from './pages/Users';
 import VideoConference from './pages/VideoConference';
-import CustomerShop from './pages/CustomerShop';
-import Shop from './pages/Shop';
-import Orders from './pages/Orders';
-import PublicShop from './pages/PublicShop';
-import ShopCustomization from './pages/ShopCustomization';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +79,7 @@ export const PAGES = {
     "AdvertGenerator": AdvertGenerator,
     "Announcements": Announcements,
     "BusinessAnalytics": BusinessAnalytics,
+    "CustomerShop": CustomerShop,
     "Customers": Customers,
     "DamagedInventory": DamagedInventory,
     "Dashboard": Dashboard,
@@ -87,20 +88,19 @@ export const PAGES = {
     "Home": Home,
     "Inventory": Inventory,
     "InventorySections": InventorySections,
+    "Orders": Orders,
     "ProductSalesReport": ProductSalesReport,
+    "PublicShop": PublicShop,
     "QuickSale": QuickSale,
     "Sales": Sales,
     "SalesBySections": SalesBySections,
+    "Shop": Shop,
+    "ShopCustomization": ShopCustomization,
     "ShopGallery": ShopGallery,
     "Suppliers": Suppliers,
     "Transactions": Transactions,
     "Users": Users,
     "VideoConference": VideoConference,
-    "CustomerShop": CustomerShop,
-    "Shop": Shop,
-    "Orders": Orders,
-    "PublicShop": PublicShop,
-    "ShopCustomization": ShopCustomization,
 }
 
 export const pagesConfig = {

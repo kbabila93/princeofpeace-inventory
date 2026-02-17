@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ShoppingCart, Search, Package, Store, Minus, Plus, Trash2, X } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
+import Barcode from 'react-barcode';
 
 export default function PublicShop() {
   const [search, setSearch] = useState("");
@@ -288,6 +289,11 @@ export default function PublicShop() {
                     <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
                     {product.description && (
                       <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                    )}
+                    {product.sku && (
+                      <div className="mb-3 flex justify-center bg-white py-2">
+                        <Barcode value={product.sku} width={1.2} height={35} fontSize={10} />
+                      </div>
                     )}
                     <div className="flex items-center justify-between mb-3">
                       <div>
