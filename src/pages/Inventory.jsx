@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Plus, 
   Search, 
@@ -30,11 +31,13 @@ import {
   ArrowUpCircle,
   Camera,
   AlertCircle,
-  Package
+  Package,
+  Edit
 } from 'lucide-react';
 import ProductForm from '@/components/inventory/ProductForm';
 import StockAdjustmentDialog from '@/components/inventory/StockAdjustmentDialog';
 import BarcodeScannerDialog from '@/components/scanner/BarcodeScannerDialog';
+import BulkEditDialog from '@/components/inventory/BulkEditDialog';
 import { toast } from 'sonner';
 
 export default function Inventory() {
