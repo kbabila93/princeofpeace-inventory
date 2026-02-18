@@ -77,6 +77,32 @@ export default function Dashboard() {
 
       <Card>
         <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-indigo-500" />
+            Stock by Location
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Object.entries(productsBySection).sort((a, b) => b[1].quantity - a[1].quantity).map(([section, data]) => (
+              <div key={section} className="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-indigo-800 truncate">{section}</span>
+                  <span className="text-xs bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded-full">{data.count} SKUs</span>
+                </div>
+                <p className="text-2xl font-bold text-indigo-900">{data.quantity.toLocaleString()}</p>
+                <p className="text-xs text-indigo-500 mt-1">units · ${data.value.toFixed(2)} value</p>
+              </div>
+            ))}
+            {Object.keys(productsBySection).length === 0 && (
+              <p className="text-sm text-gray-500 col-span-3">No location data available</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Recent Transactions</CardTitle>
         </CardHeader>
         <CardContent>
