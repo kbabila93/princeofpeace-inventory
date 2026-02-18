@@ -48,6 +48,8 @@ export default function Inventory() {
   const [initialSku, setInitialSku] = useState(null);
   const [stockAdjustment, setStockAdjustment] = useState({ isOpen: false, product: null, type: 'in' });
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
