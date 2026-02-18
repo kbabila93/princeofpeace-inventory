@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, TrendingDown, AlertTriangle, DollarSign } from "lucide-react";
+import { Package, TrendingDown, AlertTriangle, DollarSign, MapPin } from "lucide-react";
 
 export default function Dashboard() {
   const { data: products = [] } = useQuery({
