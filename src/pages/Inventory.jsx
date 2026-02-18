@@ -199,6 +199,12 @@ export default function Inventory() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
+                  onCheckedChange={toggleSelectAll}
+                />
+              </TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Price</TableHead>
