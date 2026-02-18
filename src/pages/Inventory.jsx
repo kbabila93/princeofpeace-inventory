@@ -89,6 +89,18 @@ export default function Inventory() {
     setIsProductFormOpen(true);
   };
 
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredProducts.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredProducts.map(p => p.id));
+    }
+  };
+
   const handleScanResult = (code) => {
     const product = products.find(p => p.sku === code);
     if (product) {
