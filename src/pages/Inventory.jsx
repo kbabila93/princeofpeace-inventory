@@ -234,6 +234,12 @@ export default function Inventory() {
                 return (
                   <TableRow key={product.id} className={selectedIds.includes(product.id) ? "bg-indigo-50" : ""}>
                     <TableCell>
+                      <Checkbox
+                        checked={selectedIds.includes(product.id)}
+                        onCheckedChange={() => toggleSelect(product.id)}
+                      />
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
                           {product.image_url ? (
