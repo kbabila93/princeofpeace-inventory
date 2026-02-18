@@ -177,7 +177,13 @@ export default function Inventory() {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {selectedIds.length > 0 && (
+            <Button onClick={() => setIsBulkEditOpen(true)} variant="outline" className="border-indigo-300 text-indigo-700 hover:bg-indigo-50">
+              <Edit className="w-4 h-4 mr-2" />
+              Bulk Edit ({selectedIds.length})
+            </Button>
+          )}
           <Button onClick={() => setIsScannerOpen(true)} variant="outline">
             <Camera className="w-4 h-4 mr-2" />
             Scan
