@@ -22,6 +22,15 @@ export default function Dashboard() {
 
   const recentTransactions = transactions.slice(0, 10);
 
+  const productsBySection = products.reduce((acc, p) => {
+    const section = p.section || 'Main';
+    if (!acc[section]) acc[section] = { count: 0, quantity: 0, value: 0 };
+    acc[section].count += 1;
+    acc[section].quantity += (p.quantity || 0);
+    acc[section].value += (p.quantity || 0) * (p.price || 0);
+    return acc;
+  }, {});
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
