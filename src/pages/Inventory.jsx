@@ -232,7 +232,7 @@ export default function Inventory() {
                 const isOutOfStock = (product.quantity || 0) === 0;
 
                 return (
-                  <TableRow key={product.id}>
+                  <TableRow key={product.id} className={selectedIds.includes(product.id) ? "bg-indigo-50" : ""}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
