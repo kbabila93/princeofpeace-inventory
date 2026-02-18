@@ -340,6 +340,13 @@ export default function Inventory() {
         onClose={() => setIsScannerOpen(false)}
         onScan={handleScanResult}
       />
+
+      <BulkEditDialog
+        isOpen={isBulkEditOpen}
+        onClose={() => setIsBulkEditOpen(false)}
+        selectedIds={selectedIds}
+        onComplete={() => setSelectedIds([])}
+      />
     </div>
   );
 }
