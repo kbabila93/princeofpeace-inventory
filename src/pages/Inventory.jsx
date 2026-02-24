@@ -58,13 +58,20 @@ export default function Inventory() {
     queryFn: () => base44.entities.Product.list(),
   });
 
-  const filteredProducts = products.filter(product => {
-    const searchLower = search.toLowerCase();
-    const matchesSearch = product.name.toLowerCase().includes(searchLower) || 
-                         (product.sku || "").toLowerCase().includes(searchLower);
-    const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredProducts = products
+    .filter(product => {
+      const searchLower = search.toLowerCase();
+      const matchesSearch = product.name.toLowerCase().includes(searchLower) || 
+                           (product.sku || "").toLowerCase().includes(searchLower);
+      const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      const sectionA = (a.section || 'Main').toLowerCase();
+      const sectionB = (b.section || 'Main').toLowerCase();
+      if (sectionA !== sectionB) return sectionA.localeCompare(sectionB);
+      return a.name.localeCompare(b.name);
+    });
 
   const totalStock = filteredProducts.reduce((sum, p) => sum + (p.quantity || 0), 0);
   const totalValue = filteredProducts.reduce((sum, p) => sum + ((p.quantity || 0) * (p.price || 0)), 0);
