@@ -332,8 +332,9 @@ export default function Inventory() {
                       </div>
                     </TableCell>
                   </TableRow>
-                );
-              })
+                acc.push(row);
+                return acc;
+              }, [])
             )}
           </TableBody>
         </Table>
