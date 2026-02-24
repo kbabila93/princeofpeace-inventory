@@ -234,22 +234,24 @@ export default function Inventory() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.reduce((acc, product, index) => {
+              filteredProducts.flatMap((product, index) => {
                 const section = product.section || 'Main';
                 const prevSection = index > 0 ? (filteredProducts[index - 1].section || 'Main') : null;
+                const isLowStock = (product.quantity || 0) <= (product.low_stock_threshold || 10);
+                const isOutOfStock = (product.quantity || 0) === 0;
+                const rows = [];
+
                 if (section !== prevSection) {
-                  acc.push(
-                    <TableRow key={`section-${section}`} className="bg-slate-50 border-t-2 border-indigo-100">
+                  rows.push(
+                    <TableRow key={`section-${section}-${index}`} className="bg-slate-50 border-t-2 border-indigo-100">
                       <TableCell colSpan={7} className="py-2 px-4">
                         <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">{section}</span>
                       </TableCell>
                     </TableRow>
                   );
                 }
-                const isLowStock = (product.quantity || 0) <= (product.low_stock_threshold || 10);
-                const isOutOfStock = (product.quantity || 0) === 0;
 
-                acc.push(
+                rows.push(
                   <TableRow key={product.id} className={selectedIds.includes(product.id) ? "bg-indigo-50" : ""}>
                     <TableCell>
                       <Checkbox
@@ -333,8 +335,9 @@ export default function Inventory() {
                     </TableCell>
                   </TableRow>
                 );
-                return acc;
-              }, [])
+
+                return rows;
+              })
             )}
           </TableBody>
         </Table>
