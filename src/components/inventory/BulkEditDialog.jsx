@@ -46,14 +46,7 @@ export default function BulkEditDialog({ isOpen, onClose, selectedIds, onComplet
                 updateData.last_updated_by = user.email;
             }
 
-            // Execute updates sequentially with delay to avoid rate limits
-            for (let i = 0; i < selectedIds.length; i++) {
-                await base44.entities.Product.update(selectedIds[i], updateData);
-                // Wait 1 second between each update to avoid rate limiting
-                if (i < selectedIds.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-            }
+            await Promise.all(selectedIds.map(id => base44.entities.Product.update(id, updateData)));
         },
         onSuccess: () => {
              queryClient.invalidateQueries({ queryKey: ['products'] });
