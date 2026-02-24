@@ -250,6 +250,7 @@ export default function Inventory() {
                 const isOutOfStock = (product.quantity || 0) === 0;
 
                 return (
+                const row = (
                   <TableRow key={product.id} className={selectedIds.includes(product.id) ? "bg-indigo-50" : ""}>
                     <TableCell>
                       <Checkbox
