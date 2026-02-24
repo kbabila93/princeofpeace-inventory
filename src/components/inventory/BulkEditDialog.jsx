@@ -46,10 +46,10 @@ export default function BulkEditDialog({ isOpen, onClose, selectedIds, onComplet
                 updateData.last_updated_by = user.email;
             }
 
-            // Update one at a time to avoid rate limits
+            // Update one at a time with delay to avoid rate limits
             for (const id of selectedIds) {
                 await base44.entities.Product.update(id, updateData);
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, 1200));
             }
         },
         onSuccess: () => {
