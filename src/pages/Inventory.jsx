@@ -249,8 +249,7 @@ export default function Inventory() {
                 const isLowStock = (product.quantity || 0) <= (product.low_stock_threshold || 10);
                 const isOutOfStock = (product.quantity || 0) === 0;
 
-                return (
-                const row = (
+                acc.push(
                   <TableRow key={product.id} className={selectedIds.includes(product.id) ? "bg-indigo-50" : ""}>
                     <TableCell>
                       <Checkbox
@@ -333,7 +332,7 @@ export default function Inventory() {
                       </div>
                     </TableCell>
                   </TableRow>
-                acc.push(row);
+                );
                 return acc;
               }, [])
             )}
