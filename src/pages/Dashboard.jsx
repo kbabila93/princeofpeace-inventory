@@ -2,7 +2,8 @@ import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, TrendingDown, AlertTriangle, DollarSign, MapPin } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Package, TrendingDown, AlertTriangle, DollarSign, MapPin, XCircle } from "lucide-react";
 
 export default function Dashboard() {
   const { data: products = [] } = useQuery({
@@ -19,6 +20,7 @@ export default function Dashboard() {
   const totalStock = products.reduce((sum, p) => sum + (p.quantity || 0), 0);
   const lowStockItems = products.filter(p => (p.quantity || 0) <= (p.low_stock_threshold || 10)).length;
   const totalValue = products.reduce((sum, p) => sum + ((p.quantity || 0) * (p.price || 0)), 0);
+  const outOfStockProducts = products.filter(p => (p.quantity || 0) === 0);
 
   const recentTransactions = transactions.slice(0, 10);
 
@@ -100,6 +102,49 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {outOfStockProducts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-600">
+              <XCircle className="w-5 h-5" />
+              Out of Stock ({outOfStockProducts.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Section</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {outOfStockProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell className="text-gray-500">{product.sku || '-'}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">
+                          {product.category}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-gray-600">{product.section || 'Main'}</TableCell>
+                      <TableCell className="text-right font-medium">
+                        {product.currency} {product.price?.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
