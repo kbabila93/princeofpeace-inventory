@@ -32,12 +32,14 @@ import {
   Camera,
   AlertCircle,
   Package,
-  Edit
+  Edit,
+  Printer
 } from 'lucide-react';
 import ProductForm from '@/components/inventory/ProductForm';
 import StockAdjustmentDialog from '@/components/inventory/StockAdjustmentDialog';
 import BarcodeScannerDialog from '@/components/scanner/BarcodeScannerDialog';
 import BulkEditDialog from '@/components/inventory/BulkEditDialog';
+import PrintLabelsDialog from '@/components/inventory/PrintLabelsDialog';
 import { toast } from 'sonner';
 
 export default function Inventory() {
@@ -50,6 +52,7 @@ export default function Inventory() {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
+  const [isPrintLabelsOpen, setIsPrintLabelsOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -186,10 +189,16 @@ export default function Inventory() {
         </div>
         <div className="flex gap-2 items-center">
           {selectedIds.length > 0 && (
-            <Button onClick={() => setIsBulkEditOpen(true)} variant="outline" className="border-indigo-300 text-indigo-700 hover:bg-indigo-50">
-              <Edit className="w-4 h-4 mr-2" />
-              Bulk Edit ({selectedIds.length})
-            </Button>
+            <>
+              <Button onClick={() => setIsPrintLabelsOpen(true)} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                <Printer className="w-4 h-4 mr-2" />
+                Print Labels ({selectedIds.length})
+              </Button>
+              <Button onClick={() => setIsBulkEditOpen(true)} variant="outline" className="border-indigo-300 text-indigo-700 hover:bg-indigo-50">
+                <Edit className="w-4 h-4 mr-2" />
+                Bulk Edit ({selectedIds.length})
+              </Button>
+            </>
           )}
           <Button onClick={() => setIsScannerOpen(true)} variant="outline">
             <Camera className="w-4 h-4 mr-2" />
@@ -368,6 +377,12 @@ export default function Inventory() {
         onClose={() => setIsBulkEditOpen(false)}
         selectedIds={selectedIds}
         onComplete={() => setSelectedIds([])}
+      />
+
+      <PrintLabelsDialog
+        isOpen={isPrintLabelsOpen}
+        onClose={() => setIsPrintLabelsOpen(false)}
+        products={products.filter(p => selectedIds.includes(p.id))}
       />
     </div>
   );
