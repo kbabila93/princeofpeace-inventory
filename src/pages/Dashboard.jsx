@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, TrendingDown, AlertTriangle, DollarSign, MapPin, XCircle } from "lucide-react";
+import { Package, TrendingDown, AlertTriangle, DollarSign, MapPin, XCircle, Printer } from "lucide-react";
 
 export default function Dashboard() {
   const { data: products = [] } = useQuery({
@@ -116,10 +116,26 @@ export default function Dashboard() {
 
       <Card>
           <CardHeader>
+            <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-red-600">
               <XCircle className="w-5 h-5" />
               Out of Stock ({outOfStockProducts.length})
             </CardTitle>
+            {outOfStockProducts.length > 0 && (
+              <button
+                onClick={() => {
+                  const win = window.open('', '_blank');
+                  win.document.write(`<html><head><title>Out of Stock Products</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f3f4f6}h2{color:#dc2626}</style></head><body><h2>Out of Stock Products</h2><p>Generated: ${new Date().toLocaleString()}</p><table><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Section</th><th>Price</th></tr></thead><tbody>${outOfStockProducts.map(p => `<tr><td>${p.name}</td><td>${p.sku || '-'}</td><td>${p.category || '-'}</td><td>${p.section || 'Main'}</td><td>${p.currency || ''} ${p.price?.toFixed(2) || '-'}</td></tr>`).join('')}</tbody></table></body></html>`);
+                  win.document.close();
+                  win.print();
+                }}
+                className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-600 border border-gray-200 hover:border-red-300 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Printer className="w-4 h-4" />
+                Print
+              </button>
+            )}
+          </div>
           </CardHeader>
           <CardContent>
             {outOfStockProducts.length === 0 ? (
