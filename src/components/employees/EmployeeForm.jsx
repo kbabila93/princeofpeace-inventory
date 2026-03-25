@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 export default function EmployeeForm({ isOpen, onClose, employee }) {
@@ -204,13 +204,41 @@ export default function EmployeeForm({ isOpen, onClose, employee }) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="image_url">Photo URL</Label>
-              <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                placeholder="https://..."
-              />
+              <Label htmlFor="image_url">Profile Photo</Label>
+              <div className="flex items-center gap-2">
+                {formData.image_url && (
+                  <img src={formData.image_url} alt="Preview" className="w-10 h-10 rounded-full object-cover border" />
+                )}
+                <Input
+                  id="image_url"
+                  value={formData.image_url}
+                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                  placeholder="https://..."
+                  className="flex-1"
+                />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  id="emp-photo-upload"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    try {
+                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                      setFormData(prev => ({ ...prev, image_url: file_url }));
+                      toast.success('Photo uploaded');
+                    } catch {
+                      toast.error('Upload failed');
+                    }
+                  }}
+                />
+                <label htmlFor="emp-photo-upload">
+                  <Button type="button" variant="outline" size="icon" asChild>
+                    <span><Upload className="w-4 h-4" /></span>
+                  </Button>
+                </label>
+              </div>
             </div>
           </div>
 
