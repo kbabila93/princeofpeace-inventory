@@ -30,14 +30,25 @@ export default function ProductForm({ isOpen, onClose, product, initialSku }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (!isOpen) return;
+    // Only re-initialize when dialog opens, not on external product updates (e.g. React Query refetches)
     if (product) {
       setFormData(product);
-    } else if (initialSku) {
-      setFormData(prev => ({ ...prev, sku: initialSku }));
-    } else if (isOpen && !product) {
-      setFormData(prev => ({ ...prev, sku: generateSKU() }));
+    } else {
+      setFormData({
+        name: '',
+        sku: initialSku || generateSKU(),
+        description: '',
+        category: 'other',
+        price: '',
+        cost_price: '',
+        quantity: 0,
+        low_stock_threshold: 10,
+        image_url: ''
+      });
     }
-  }, [product, initialSku, isOpen]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const mutation = useMutation({
     mutationFn: async (data) => {
@@ -79,7 +90,7 @@ export default function ProductForm({ isOpen, onClose, product, initialSku }) {
 
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData({ ...formData, image_url: file_url });
+      setFormData(prev => ({ ...prev, image_url: file_url }));
       toast.success('Image uploaded');
     } catch (error) {
       toast.error('Failed to upload image');
