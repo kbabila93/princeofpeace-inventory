@@ -101,7 +101,9 @@ export default function Layout({ children, currentPageName }) {
     if (user?.role === 'admin') return true;
     if (!user) return false;
     if (item.permission === 'manage_users') return false;
-    return true;
+    const userPermissions = user.permissions || [];
+    if (userPermissions.length === 0) return true; // no restrictions set yet
+    return userPermissions.includes(item.permission);
   });
 
   const handleLogout = async () => {
