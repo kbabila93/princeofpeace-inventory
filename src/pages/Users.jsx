@@ -27,19 +27,33 @@ import {
 } from "@/components/ui/table";
 import { toast } from 'sonner';
 
-const AVAILABLE_PERMISSIONS = [
-  { id: 'view_dashboard', label: 'View Dashboard' },
-  { id: 'manage_inventory', label: 'Manage Inventory' },
-  { id: 'manage_sales', label: 'Manage Sales' },
-  { id: 'manage_expenditures', label: 'Manage Expenditures' },
-  { id: 'manage_employees', label: 'Manage Employees' },
-  { id: 'manage_transactions', label: 'View Transactions' },
+const PAGE_PERMISSIONS = [
+  { id: 'page_dashboard', label: 'Dashboard' },
+  { id: 'page_quick_sale', label: 'Quick Sale' },
+  { id: 'page_sales', label: 'Sales' },
+  { id: 'page_sales_by_sections', label: 'Sales by Section' },
+  { id: 'page_product_sales_report', label: 'Product Sales Report' },
+  { id: 'page_expenditures', label: 'Expenditures' },
+  { id: 'page_inventory', label: 'Inventory' },
+  { id: 'page_inventory_sections', label: 'Sections View' },
+  { id: 'page_damaged_inventory', label: 'Damaged Inventory' },
+  { id: 'page_employees', label: 'Employees' },
+  { id: 'page_customers', label: 'Customers' },
+  { id: 'page_suppliers', label: 'Suppliers' },
+  { id: 'page_transactions', label: 'Transactions' },
+  { id: 'page_orders', label: 'Customer Orders' },
+  { id: 'page_customer_shop', label: 'Customer Shop Link' },
+  { id: 'page_shop_customization', label: 'Shop Customization' },
+  { id: 'page_business_analytics', label: 'Business Analytics' },
+  { id: 'page_meetings', label: 'Meetings' },
+  { id: 'page_marketing', label: 'Marketing' },
+  { id: 'page_shop_gallery', label: 'Shop Gallery' },
+  { id: 'page_announcements', label: 'Announcements' },
   { id: 'delete_transactions', label: 'Delete Transactions' },
   { id: 'delete_sales', label: 'Delete Sales History' },
   { id: 'delete_inventory', label: 'Delete Inventory' },
   { id: 'delete_expenditures', label: 'Delete Expenditures' },
   { id: 'delete_employees', label: 'Delete Employees' },
-  { id: 'manage_users', label: 'Manage Users (Admin)' },
 ];
 
 export default function UsersPage() {
@@ -163,37 +177,51 @@ export default function UsersPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <h4 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wider">Permissions</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {AVAILABLE_PERMISSIONS.map((perm) => {
-                  const hasPermission = (user.permissions || []).includes(perm.id);
-                  const isUpdating = updatePermissionsMutation.isPending && updatePermissionsMutation.variables?.userId === user.id;
-                  
-                  // Admins implicitly have all permissions usually, but here we allow explicit control
-                  // Except manage_users which is tied to admin role
-                  const isDisabled = user.role === 'admin' && perm.id === 'manage_users'; 
-
-                  return (
-                    <div key={perm.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`${user.id}-${perm.id}`} 
-                        checked={hasPermission || (user.role === 'admin' && perm.id === 'manage_users')}
-                        disabled={isDisabled || isUpdating}
-                        onCheckedChange={(checked) => handlePermissionChange(user.id, user.permissions, perm.id, checked)}
-                      />
-                      <label 
-                        htmlFor={`${user.id}-${perm.id}`} 
-                        className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${hasPermission ? 'text-gray-900' : 'text-gray-500'}`}
-                      >
-                        {perm.label}
-                      </label>
+              {user.role === 'admin' ? (
+                <p className="text-sm text-gray-500 italic">Admins have full access to all pages.</p>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Page Access</h4>
+                    <div className="flex gap-2">
+                      <button
+                        className="text-xs text-indigo-600 hover:underline"
+                        onClick={() => updatePermissionsMutation.mutate({ userId: user.id, permissions: PAGE_PERMISSIONS.map(p => p.id) })}
+                      >Grant All</button>
+                      <span className="text-gray-300">|</span>
+                      <button
+                        className="text-xs text-red-500 hover:underline"
+                        onClick={() => updatePermissionsMutation.mutate({ userId: user.id, permissions: [] })}
+                      >Revoke All</button>
                     </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {PAGE_PERMISSIONS.map((perm) => {
+                      const hasPermission = (user.permissions || []).includes(perm.id);
+                      const isUpdating = updatePermissionsMutation.isPending && updatePermissionsMutation.variables?.userId === user.id;
+                      return (
+                        <div key={perm.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`${user.id}-${perm.id}`}
+                            checked={hasPermission}
+                            disabled={isUpdating}
+                            onCheckedChange={(checked) => handlePermissionChange(user.id, user.permissions, perm.id, checked)}
+                          />
+                          <label
+                            htmlFor={`${user.id}-${perm.id}`}
+                            className={`text-sm font-medium leading-none cursor-pointer ${hasPermission ? 'text-gray-900' : 'text-gray-400'}`}
+                          >
+                            {perm.label}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+              </CardContent>
+              </Card>
+              ))}
 
         {filteredUsers.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg border border-dashed">
