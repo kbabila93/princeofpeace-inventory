@@ -114,8 +114,7 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {outOfStockProducts.length > 0 && (
-        <Card>
+      <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600">
               <XCircle className="w-5 h-5" />
@@ -123,6 +122,9 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {outOfStockProducts.length === 0 ? (
+              <p className="text-sm text-gray-500">No out-of-stock products 🎉</p>
+            ) : (
             <div className="border rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
@@ -153,9 +155,9 @@ export default function Dashboard() {
                 </TableBody>
               </Table>
             </div>
+            )}
           </CardContent>
         </Card>
-      )}
 
       <Card>
         <CardHeader>
