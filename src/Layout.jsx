@@ -97,15 +97,11 @@ export default function Layout({ children, currentPageName }) {
     navigation.push({ name: 'Users', href: 'Users', icon: Shield, permission: 'manage_users' });
   }
 
-  const defaultPermissions = ['view_dashboard', 'manage_sales', 'manage_inventory', 'manage_expenditures', 'manage_transactions', 'manage_employees'];
-
   const filteredNavigation = navigation.filter(item => {
     if (user?.role === 'admin') return true;
     if (!user) return false;
-    if (!item.permission) return true;
     if (item.permission === 'manage_users') return false;
-    const userPermissions = (user.permissions && user.permissions.length > 0) ? user.permissions : defaultPermissions;
-    return userPermissions.includes(item.permission);
+    return true;
   });
 
   const handleLogout = async () => {
