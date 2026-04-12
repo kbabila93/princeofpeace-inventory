@@ -461,6 +461,28 @@ export default function Inventory() {
               })
             )}
           </TableBody>
+          {filteredProducts.length > 0 && (() => {
+            const totalQty = filteredProducts.reduce((s, p) => s + (p.quantity || 0), 0);
+            const totalCostValue = filteredProducts.reduce((s, p) => s + (p.cost_price != null ? Number(p.cost_price) * (p.quantity || 0) : 0), 0);
+            const totalSaleValue = filteredProducts.reduce((s, p) => s + (Number(p.price) * (p.quantity || 0)), 0);
+            const totalProfit = filteredProducts.reduce((s, p) => s + (p.cost_price != null ? (Number(p.price) - Number(p.cost_price)) * (p.quantity || 0) : 0), 0);
+            return (
+              <tfoot>
+                <tr className="border-t-2 border-indigo-200 bg-indigo-50 font-semibold text-sm">
+                  <td className="p-2" />
+                  <td className="p-2 text-indigo-700">Totals ({filteredProducts.length} products)</td>
+                  <td className="p-2" />
+                  <td className="p-2 text-gray-700">${totalCostValue.toFixed(2)}</td>
+                  <td className="p-2 text-gray-700">${totalSaleValue.toFixed(2)}</td>
+                  <td className="p-2" />
+                  <td className="p-2 text-green-700">${totalProfit.toFixed(2)}</td>
+                  <td className="p-2 text-indigo-700">{totalQty.toLocaleString()} units</td>
+                  <td className="p-2" />
+                  <td className="p-2" />
+                </tr>
+              </tfoot>
+            );
+          })()}
         </Table>
       </div>
 
