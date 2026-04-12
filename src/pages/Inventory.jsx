@@ -56,7 +56,8 @@ export default function Inventory() {
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
   const [isPrintLabelsOpen, setIsPrintLabelsOpen] = useState(false);
   const [sortBy, setSortBy] = useState("section");
-  const [dateFilter, setDateFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const queryClient = useQueryClient();
 
@@ -71,7 +72,8 @@ export default function Inventory() {
       const matchesSearch = product.name.toLowerCase().includes(searchLower) || 
                            (product.sku || "").toLowerCase().includes(searchLower);
       const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
-      const matchesDate = !dateFilter || new Date(product.created_date).toLocaleDateString('en-CA') === dateFilter;
+      const productDate = new Date(product.created_date).toLocaleDateString('en-CA');
+      const matchesDate = (!dateFrom || productDate >= dateFrom) && (!dateTo || productDate <= dateTo);
       return matchesSearch && matchesCategory && matchesDate;
     })
     .sort((a, b) => {
@@ -236,16 +238,24 @@ export default function Inventory() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Input
               type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="w-[170px]"
-              title="Filter by entry date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-[150px]"
+              title="From date"
             />
-            {dateFilter && (
-              <Button variant="ghost" size="sm" onClick={() => setDateFilter('')} className="text-gray-400 hover:text-gray-600 px-2">
+            <span className="text-gray-400 text-sm">to</span>
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-[150px]"
+              title="To date"
+            />
+            {(dateFrom || dateTo) && (
+              <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }} className="text-gray-400 hover:text-gray-600 px-2">
                 ✕
               </Button>
             )}
