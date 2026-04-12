@@ -56,6 +56,7 @@ export default function Inventory() {
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
   const [isPrintLabelsOpen, setIsPrintLabelsOpen] = useState(false);
   const [sortBy, setSortBy] = useState("section");
+  const [dateFilter, setDateFilter] = useState("");
 
   const queryClient = useQueryClient();
 
@@ -70,7 +71,8 @@ export default function Inventory() {
       const matchesSearch = product.name.toLowerCase().includes(searchLower) || 
                            (product.sku || "").toLowerCase().includes(searchLower);
       const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
-      return matchesSearch && matchesCategory;
+      const matchesDate = !dateFilter || new Date(product.created_date).toLocaleDateString('en-CA') === dateFilter;
+      return matchesSearch && matchesCategory && matchesDate;
     })
     .sort((a, b) => {
       if (sortBy === 'date_newest') return new Date(b.created_date) - new Date(a.created_date);
@@ -233,6 +235,20 @@ export default function Inventory() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-[170px]"
+              title="Filter by entry date"
+            />
+            {dateFilter && (
+              <Button variant="ghost" size="sm" onClick={() => setDateFilter('')} className="text-gray-400 hover:text-gray-600 px-2">
+                ✕
+              </Button>
+            )}
           </div>
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-[180px]">
