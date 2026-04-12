@@ -33,8 +33,10 @@ import {
   AlertCircle,
   Package,
   Edit,
-  Printer
+  Printer,
+  FileDown
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import ProductForm from '@/components/inventory/ProductForm';
 import StockAdjustmentDialog from '@/components/inventory/StockAdjustmentDialog';
 import BarcodeScannerDialog from '@/components/scanner/BarcodeScannerDialog';
@@ -113,6 +115,62 @@ export default function Inventory() {
     } else {
       setSelectedIds(filteredProducts.map(p => p.id));
     }
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const now = new Date().toLocaleDateString();
+
+    doc.setFontSize(18);
+    doc.setTextColor(79, 70, 229);
+    doc.text('Inventory Report', 14, 18);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${now}   Total Products: ${filteredProducts.length}`, 14, 26);
+
+    // Table headers
+    const headers = ['Product', 'SKU', 'Category', 'Section', 'Cost Price', 'Price', 'Profit/Unit', 'Stock', 'Status'];
+    const colWidths = [45, 30, 25, 25, 25, 22, 25, 20, 25];
+    const colX = [14];
+    for (let i = 1; i < colWidths.length; i++) colX.push(colX[i-1] + colWidths[i-1]);
+
+    let y = 34;
+    doc.setFillColor(79, 70, 229);
+    doc.rect(14, y, colX[colX.length-1] - 14 + colWidths[colWidths.length-1], 8, 'F');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    headers.forEach((h, i) => doc.text(h, colX[i] + 1, y + 5.5));
+    y += 10;
+
+    doc.setFontSize(8);
+    filteredProducts.forEach((p, idx) => {
+      if (y > 185) { doc.addPage(); y = 14; }
+      const isLow = (p.quantity || 0) <= (p.low_stock_threshold || 10);
+      const isOut = (p.quantity || 0) === 0;
+      doc.setFillColor(idx % 2 === 0 ? 248 : 255, idx % 2 === 0 ? 248 : 255, idx % 2 === 0 ? 248 : 255);
+      doc.rect(14, y - 4, colX[colX.length-1] - 14 + colWidths[colWidths.length-1], 8, 'F');
+      doc.setTextColor(30, 30, 30);
+      const profit = p.cost_price != null ? (Number(p.price) - Number(p.cost_price)).toFixed(2) : '—';
+      const status = isOut ? 'Out of Stock' : isLow ? 'Low Stock' : 'In Stock';
+      const row = [
+        p.name.substring(0, 22),
+        p.sku || '—',
+        p.category || '—',
+        p.section || 'Main',
+        p.cost_price != null ? `$${Number(p.cost_price).toFixed(2)}` : '—',
+        `$${Number(p.price).toFixed(2)}`,
+        profit !== '—' ? `$${profit}` : '—',
+        String(p.quantity || 0),
+        status
+      ];
+      if (isOut) doc.setTextColor(220, 38, 38);
+      else if (isLow) doc.setTextColor(234, 88, 12);
+      row.forEach((val, i) => doc.text(val, colX[i] + 1, y + 0.5));
+      doc.setTextColor(30, 30, 30);
+      y += 8;
+    });
+
+    doc.save(`inventory-report-${now.replace(/\//g, '-')}.pdf`);
   };
 
   const handleScanResult = (code) => {
@@ -214,6 +272,10 @@ export default function Inventory() {
               </Button>
             </>
           )}
+          <Button onClick={handleExportPDF} variant="outline">
+            <FileDown className="w-4 h-4 mr-2" />
+            Export PDF
+          </Button>
           <Button onClick={() => setIsScannerOpen(true)} variant="outline">
             <Camera className="w-4 h-4 mr-2" />
             Scan
