@@ -53,6 +53,7 @@ export default function Inventory() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
   const [isPrintLabelsOpen, setIsPrintLabelsOpen] = useState(false);
+  const [sortBy, setSortBy] = useState("section");
 
   const queryClient = useQueryClient();
 
@@ -70,6 +71,9 @@ export default function Inventory() {
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
+      if (sortBy === 'date_newest') return new Date(b.created_date) - new Date(a.created_date);
+      if (sortBy === 'date_oldest') return new Date(a.created_date) - new Date(b.created_date);
+      // default: section then name
       const sectionA = (a.section || 'Main').toLowerCase();
       const sectionB = (b.section || 'Main').toLowerCase();
       if (sectionA !== sectionB) return sectionA.localeCompare(sectionB);
@@ -172,6 +176,16 @@ export default function Inventory() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="section">Sort by Section</SelectItem>
+              <SelectItem value="date_newest">Newest First</SelectItem>
+              <SelectItem value="date_oldest">Oldest First</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Category" />
@@ -250,7 +264,7 @@ export default function Inventory() {
                 const isOutOfStock = (product.quantity || 0) === 0;
                 const rows = [];
 
-                if (section !== prevSection) {
+                if (sortBy === 'section' && section !== prevSection) {
                   rows.push(
                     <TableRow key={`section-${section}-${index}`} className="bg-slate-50 border-t-2 border-indigo-100">
                       <TableCell colSpan={7} className="py-2 px-4">
