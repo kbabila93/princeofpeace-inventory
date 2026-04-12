@@ -299,7 +299,9 @@ export default function Inventory() {
               </TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead>Cost Price</TableHead>
               <TableHead>Price</TableHead>
+              <TableHead>Profit/Unit</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -308,13 +310,13 @@ export default function Inventory() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-10 text-gray-500">
+                <TableCell colSpan={9} className="text-center py-10 text-gray-500">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-10 text-gray-500">
+                <TableCell colSpan={9} className="text-center py-10 text-gray-500">
                   No products found
                 </TableCell>
               </TableRow>
@@ -329,7 +331,7 @@ export default function Inventory() {
                 if (sortBy === 'section' && section !== prevSection) {
                   rows.push(
                     <TableRow key={`section-${section}-${index}`} className="bg-slate-50 border-t-2 border-indigo-100">
-                      <TableCell colSpan={7} className="py-2 px-4">
+                      <TableCell colSpan={9} className="py-2 px-4">
                         <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">{section}</span>
                       </TableCell>
                     </TableRow>
@@ -362,7 +364,11 @@ export default function Inventory() {
                       </div>
                     </TableCell>
                     <TableCell className="capitalize">{product.category}</TableCell>
+                    <TableCell className="text-gray-600">{product.cost_price != null ? `$${Number(product.cost_price).toFixed(2)}` : '—'}</TableCell>
                     <TableCell>${Number(product.price).toFixed(2)}</TableCell>
+                    <TableCell className={product.cost_price != null ? (product.price - product.cost_price >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium') : 'text-gray-400'}>
+                      {product.cost_price != null ? `$${(Number(product.price) - Number(product.cost_price)).toFixed(2)}` : '—'}
+                    </TableCell>
                     <TableCell>
                       <span className="font-medium">{product.quantity}</span>
                       <span className="text-xs text-gray-400"> / {product.low_stock_threshold}</span>
