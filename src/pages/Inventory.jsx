@@ -225,7 +225,7 @@ export default function Inventory() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg border shadow-sm overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
