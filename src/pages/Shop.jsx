@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ShoppingCart, Search, Package, Store, Share2 } from 'lucide-react';
 import ProductCard from '@/components/shop/ProductCard';
 import Cart from '@/components/shop/Cart';
+import ShopProductDetails from '@/components/shop/ShopProductDetails';
 import { toast, Toaster } from 'sonner';
 
 export default function Shop() {
@@ -14,6 +15,7 @@ export default function Shop() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // Load cart from localStorage
   useEffect(() => {
@@ -189,11 +191,12 @@ export default function Shop() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredProducts.map(product => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  onAddToCart={addToCart}
-                />
+                <div key={product.id} onDoubleClick={() => setSelectedProduct(product)}>
+                  <ProductCard 
+                    product={product} 
+                    onAddToCart={addToCart}
+                  />
+                </div>
               ))}
             </div>
           </>
@@ -217,6 +220,12 @@ export default function Shop() {
         onClose={() => setIsCartOpen(false)}
         cart={cart}
         setCart={setCart}
+      />
+
+      <ShopProductDetails
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={addToCart}
       />
 
       <Toaster />
