@@ -1,0 +1,22 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "text": {
+      "type": "string",
+      "description": "Message content"
+    },
+    "sender_name": {
+      "type": "string",
+      "description": "Display name of the sender"
+    },
+    "channel": {
+      "type": "string",
+      "default": "general",
+      "description": "Chat channel or room name"
+    }
+  },
+  "required": [
+    "text"
+  ]
+}

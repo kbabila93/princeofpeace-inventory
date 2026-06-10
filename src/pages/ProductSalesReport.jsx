@@ -28,7 +28,7 @@ export default function ProductSalesReport() {
 
   const { data: sales = [], isLoading } = useQuery({
     queryKey: ['sales'],
-    queryFn: () => base44.entities.Sale.list('-date', 1000),
+    queryFn: () => base44.entities.Sale.list('-date', 10000),
   });
 
   const { data: products = [] } = useQuery({

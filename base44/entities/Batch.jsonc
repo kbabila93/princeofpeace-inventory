@@ -1,0 +1,61 @@
+{
+  "name": "Batch",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "ID of the product"
+    },
+    "batch_number": {
+      "type": "string",
+      "description": "Unique batch identifier"
+    },
+    "quantity": {
+      "type": "number",
+      "default": 0,
+      "description": "Current quantity in this batch"
+    },
+    "initial_quantity": {
+      "type": "number",
+      "description": "Original quantity received"
+    },
+    "expiration_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Expiration date"
+    },
+    "received_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date received"
+    },
+    "cost_price": {
+      "type": "number",
+      "description": "Cost per unit for this batch"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Supplier name or ID"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "depleted",
+        "expired",
+        "quarantine"
+      ],
+      "default": "active",
+      "description": "Status of the batch"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "product_id",
+    "batch_number",
+    "quantity"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "ShopPhoto",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Photo title or description"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "URL of the uploaded image"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "storefront",
+        "interior",
+        "products",
+        "team",
+        "events",
+        "other"
+      ],
+      "default": "other",
+      "description": "Photo category"
+    }
+  },
+  "required": [
+    "image_url"
+  ]
+}

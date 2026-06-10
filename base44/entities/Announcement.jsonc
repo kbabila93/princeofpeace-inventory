@@ -1,0 +1,41 @@
+{
+  "name": "Announcement",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Headline of the announcement"
+    },
+    "content": {
+      "type": "string",
+      "description": "Main text content"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "important",
+        "critical"
+      ],
+      "default": "normal",
+      "description": "Importance level"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "archived"
+      ],
+      "default": "published"
+    },
+    "author_name": {
+      "type": "string",
+      "description": "Name of the person who posted it"
+    }
+  },
+  "required": [
+    "title",
+    "content"
+  ]
+}

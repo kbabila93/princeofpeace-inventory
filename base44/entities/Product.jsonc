@@ -1,0 +1,100 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the product"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Stock Keeping Unit / Barcode"
+    },
+    "description": {
+      "type": "string",
+      "description": "Product details"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "electronics",
+        "clothing",
+        "food",
+        "home",
+        "beauty",
+        "other"
+      ],
+      "default": "other"
+    },
+    "section": {
+      "type": "string",
+      "description": "Warehouse section or location",
+      "default": "Main"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "damaged",
+        "discontinued"
+      ],
+      "default": "active",
+      "description": "Product status"
+    },
+    "cost_price": {
+      "type": "number",
+      "description": "Cost price per unit"
+    },
+    "price": {
+      "type": "number",
+      "description": "Selling price per unit"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CAD",
+        "AUD",
+        "JPY",
+        "INR",
+        "NGN",
+        "ZAR",
+        "KES",
+        "GHS",
+        "EGP",
+        "XOF",
+        "XAF",
+        "TZS",
+        "UGX",
+        "ETB",
+        "MAD"
+      ],
+      "default": "USD",
+      "description": "Currency for price and cost"
+    },
+    "quantity": {
+      "type": "number",
+      "default": 0,
+      "description": "Current stock level"
+    },
+    "low_stock_threshold": {
+      "type": "number",
+      "default": 10,
+      "description": "Alert when stock falls below this number"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Product image"
+    },
+    "last_updated_by": {
+      "type": "string",
+      "description": "Email of the user who last updated this record"
+    }
+  },
+  "required": [
+    "name",
+    "price"
+  ]
+}

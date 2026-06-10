@@ -1,0 +1,40 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Short title of the notification"
+    },
+    "message": {
+      "type": "string",
+      "description": "Detailed content"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "success",
+        "error"
+      ],
+      "default": "info"
+    },
+    "link": {
+      "type": "string",
+      "description": "Optional link to a page"
+    },
+    "recipient_email": {
+      "type": "string",
+      "description": "Email of specific user, or null for all"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "message"
+  ]
+}

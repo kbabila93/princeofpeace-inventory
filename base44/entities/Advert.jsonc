@@ -1,0 +1,42 @@
+{
+  "name": "Advert",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Title or headline of the advert"
+    },
+    "content": {
+      "type": "string",
+      "description": "The main text content of the ad"
+    },
+    "media_url": {
+      "type": "string",
+      "description": "URL of the generated image or video"
+    },
+    "media_type": {
+      "type": "string",
+      "enum": [
+        "image",
+        "video"
+      ],
+      "default": "image"
+    },
+    "platform": {
+      "type": "string",
+      "description": "Target platform (Instagram, Twitter, etc)"
+    },
+    "tone": {
+      "type": "string",
+      "description": "Tone of the advert"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Name of the product being advertised"
+    }
+  },
+  "required": [
+    "content",
+    "media_url"
+  ]
+}

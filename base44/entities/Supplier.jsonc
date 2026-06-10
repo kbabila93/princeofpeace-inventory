@@ -1,0 +1,42 @@
+{
+  "name": "Supplier",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Company name of the supplier"
+    },
+    "contact_person": {
+      "type": "string",
+      "description": "Name of the primary contact person"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Contact email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "address": {
+      "type": "string",
+      "description": "Physical address"
+    },
+    "country": {
+      "type": "string",
+      "description": "Country of location"
+    },
+    "website": {
+      "type": "string",
+      "description": "Supplier website URL"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

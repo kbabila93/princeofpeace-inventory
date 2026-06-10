@@ -1,0 +1,79 @@
+{
+  "name": "Sale",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time of the sale"
+    },
+    "customer_id": {
+      "type": "string",
+      "description": "ID of the customer"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "Name of the customer at time of sale"
+    },
+    "sales_rep_name": {
+      "type": "string",
+      "description": "Name of the sales representative who processed the sale"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total value of the sale"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CAD",
+        "AUD",
+        "JPY",
+        "INR",
+        "NGN",
+        "ZAR",
+        "KES",
+        "GHS",
+        "EGP",
+        "XOF",
+        "XAF",
+        "TZS",
+        "UGX",
+        "ETB",
+        "MAD"
+      ],
+      "default": "USD",
+      "description": "Currency of the sale"
+    },
+    "total_profit": {
+      "type": "number",
+      "description": "Total profit from the sale"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "card",
+        "transfer",
+        "other"
+      ],
+      "default": "cash",
+      "description": "Method of payment"
+    },
+    "items_summary": {
+      "type": "string",
+      "description": "Readable summary of items sold"
+    },
+    "items_json": {
+      "type": "string",
+      "description": "JSON string containing array of {productId, name, quantity, price}"
+    }
+  },
+  "required": [
+    "date",
+    "total_amount"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "name": "Expenditure",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date of expenditure"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the expense"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount spent"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CAD",
+        "AUD",
+        "JPY",
+        "INR",
+        "NGN",
+        "ZAR",
+        "KES",
+        "GHS",
+        "EGP",
+        "XOF",
+        "XAF",
+        "TZS",
+        "UGX",
+        "ETB",
+        "MAD"
+      ],
+      "default": "USD",
+      "description": "Currency"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "rent",
+        "utilities",
+        "salaries",
+        "supplies",
+        "marketing",
+        "maintenance",
+        "inventory",
+        "other"
+      ],
+      "default": "other"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "card",
+        "transfer",
+        "check",
+        "other"
+      ],
+      "default": "cash"
+    },
+    "last_updated_by": {
+      "type": "string",
+      "description": "Email of the user who last updated this record"
+    }
+  },
+  "required": [
+    "date",
+    "amount",
+    "description"
+  ]
+}

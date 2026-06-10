@@ -1,0 +1,61 @@
+{
+  "name": "ShopSettings",
+  "type": "object",
+  "properties": {
+    "shop_name": {
+      "type": "string",
+      "default": "StockFlow Shop",
+      "description": "Name of the shop"
+    },
+    "tagline": {
+      "type": "string",
+      "default": "Quality products delivered to you",
+      "description": "Shop tagline"
+    },
+    "hero_title": {
+      "type": "string",
+      "default": "Welcome to Our Store",
+      "description": "Hero section title"
+    },
+    "hero_subtitle": {
+      "type": "string",
+      "default": "Discover amazing products at great prices",
+      "description": "Hero section subtitle"
+    },
+    "primary_color": {
+      "type": "string",
+      "default": "#4f46e5",
+      "description": "Primary brand color (hex)"
+    },
+    "secondary_color": {
+      "type": "string",
+      "default": "#9333ea",
+      "description": "Secondary brand color (hex)"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Shop logo image URL"
+    },
+    "banner_image_url": {
+      "type": "string",
+      "description": "Hero banner background image"
+    },
+    "footer_text": {
+      "type": "string",
+      "default": "Quality products, excellent service",
+      "description": "Footer description"
+    },
+    "font_style": {
+      "type": "string",
+      "enum": [
+        "modern",
+        "classic",
+        "playful",
+        "elegant"
+      ],
+      "default": "modern",
+      "description": "Font style theme"
+    }
+  },
+  "required": []
+}

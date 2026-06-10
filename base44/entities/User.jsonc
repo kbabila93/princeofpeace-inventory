@@ -1,0 +1,51 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "store_location": {
+      "type": "string",
+      "description": "Saved store location for marketing materials"
+    },
+    "store_contact": {
+      "type": "string",
+      "description": "Saved store contact information"
+    },
+    "base_currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CAD",
+        "AUD",
+        "JPY",
+        "INR",
+        "NGN",
+        "ZAR",
+        "KES",
+        "GHS",
+        "EGP",
+        "XOF",
+        "XAF",
+        "TZS",
+        "UGX",
+        "ETB",
+        "MAD"
+      ],
+      "default": "USD",
+      "description": "Default currency for the store"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "User permissions for various app features"
+    }
+  },
+  "required": [
+    "store_location",
+    "store_contact",
+    "permissions"
+  ]
+}

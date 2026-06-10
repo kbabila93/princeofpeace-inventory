@@ -1,0 +1,44 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "ID of the product"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Snapshot of product name at time of transaction"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "in",
+        "out",
+        "adjustment"
+      ],
+      "description": "Type of movement"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Amount moved"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for movement (e.g. Purchase, Sale, Damage)"
+    },
+    "authorized_by": {
+      "type": "string",
+      "description": "Name of person authorizing this transaction"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "product_id",
+    "type",
+    "quantity"
+  ]
+}

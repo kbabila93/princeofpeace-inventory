@@ -1,0 +1,76 @@
+{
+  "name": "Employee",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Full name of the employee"
+    },
+    "role": {
+      "type": "string",
+      "description": "Job title or role"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Contact email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "salary": {
+      "type": "number",
+      "description": "Monthly salary"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CAD",
+        "AUD",
+        "JPY",
+        "INR",
+        "NGN",
+        "ZAR",
+        "KES",
+        "GHS",
+        "EGP",
+        "XOF",
+        "XAF",
+        "TZS",
+        "UGX",
+        "ETB",
+        "MAD"
+      ],
+      "default": "USD",
+      "description": "Salary currency"
+    },
+    "date_joined": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of joining"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "on_leave",
+        "terminated"
+      ],
+      "default": "active",
+      "description": "Employment status"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Profile picture URL"
+    }
+  },
+  "required": [
+    "name",
+    "role",
+    "email"
+  ]
+}
