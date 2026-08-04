@@ -79,8 +79,11 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success("User permissions updated");
     },
-    onError: () => {
-      toast.error("Failed to update permissions");
+    onError: (err) => {
+      console.error("Permission update error:", err);
+      toast.error("Failed to update permissions", {
+        description: err?.message || "Unknown error"
+      });
     }
   });
 
@@ -221,27 +224,25 @@ export default function UsersPage() {
                     </div>
                   </div>
                   <div className="flex flex-col gap-3">
-                    <Select
-                      key={(user.permissions || []).join(',')}
+                    <select
+                      className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
                       value=""
-                      onValueChange={(permId) => handlePermissionChange(user.id, user.permissions, permId, true)}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          handlePermissionChange(user.id, user.permissions, e.target.value, true);
+                          e.target.value = "";
+                        }
+                      }}
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a permission to add..." />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-72">
-                        {PAGE_PERMISSIONS
-                          .filter(perm => !(user.permissions || []).includes(perm.id))
-                          .map(perm => (
-                            <SelectItem key={perm.id} value={perm.id}>
-                              {perm.label}
-                            </SelectItem>
-                          ))}
-                        {PAGE_PERMISSIONS.every(perm => (user.permissions || []).includes(perm.id)) && (
-                          <div className="px-2 py-1.5 text-sm text-gray-400 italic">All permissions granted</div>
-                        )}
-                      </SelectContent>
-                    </Select>
+                      <option value="">Select a permission to add...</option>
+                      {PAGE_PERMISSIONS
+                        .filter(perm => !(user.permissions || []).includes(perm.id))
+                        .map(perm => (
+                          <option key={perm.id} value={perm.id}>
+                            {perm.label}
+                          </option>
+                        ))}
+                    </select>
                     {(user.permissions || []).length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {(user.permissions || []).map(permId => {
