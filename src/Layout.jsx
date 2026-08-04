@@ -97,7 +97,6 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const filteredNavigation = navigation.filter(item => {
-    if (!user) return false;
     if (item.permission === 'manage_users') return user?.role === 'admin';
     return true;
   });
