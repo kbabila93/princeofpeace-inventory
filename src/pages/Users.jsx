@@ -224,8 +224,9 @@ export default function UsersPage() {
                     </div>
                   </div>
                   <div className="flex flex-col gap-3">
+                    <label className="text-xs font-medium text-gray-500">Add a permission</label>
                     <select
-                      className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
+                      className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 shadow-sm hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none cursor-pointer"
                       value=""
                       onChange={(e) => {
                         if (e.target.value) {
