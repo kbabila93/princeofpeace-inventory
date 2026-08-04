@@ -101,6 +101,7 @@ export default function Layout({ children, currentPageName }) {
     if (user?.role === 'admin') return true;
     if (!user) return false;
     if (item.permission === 'manage_users') return false;
+    if (item.permission === 'page_dashboard') return true; // Always show Dashboard (home page)
     const userPermissions = user.permissions || [];
     if (userPermissions.length === 0) return true; // no restrictions set yet
     return userPermissions.includes(item.permission);
