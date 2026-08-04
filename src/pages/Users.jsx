@@ -17,6 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ChevronDown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -224,26 +227,40 @@ export default function UsersPage() {
                     </div>
                   </div>
                   <div className="flex flex-col gap-3">
-                    <label className="text-xs font-medium text-gray-500">Add a permission</label>
-                    <select
-                      className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 shadow-sm hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none cursor-pointer"
-                      value=""
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          handlePermissionChange(user.id, user.permissions, e.target.value, true);
-                          e.target.value = "";
-                        }
-                      }}
-                    >
-                      <option value="">Select a permission to add...</option>
-                      {PAGE_PERMISSIONS
-                        .filter(perm => !(user.permissions || []).includes(perm.id))
-                        .map(perm => (
-                          <option key={perm.id} value={perm.id}>
-                            {perm.label}
-                          </option>
-                        ))}
-                    </select>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between font-normal">
+                          {((user.permissions || []).length > 0)
+                            ? `${(user.permissions || []).length} permission(s) granted — click to manage`
+                            : "Select permissions..."}
+                          <ChevronDown className="w-4 h-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-0" align="start">
+                        <div className="max-h-72 overflow-y-auto p-2">
+                          {PAGE_PERMISSIONS.map((perm) => {
+                            const hasPermission = (user.permissions || []).includes(perm.id);
+                            const isUpdating = updatePermissionsMutation.isPending && updatePermissionsMutation.variables?.userId === user.id;
+                            return (
+                              <div key={perm.id} className="flex items-center space-x-2 px-2 py-1.5 rounded hover:bg-gray-50">
+                                <Checkbox
+                                  id={`popover-${user.id}-${perm.id}`}
+                                  checked={hasPermission}
+                                  disabled={isUpdating}
+                                  onCheckedChange={(checked) => handlePermissionChange(user.id, user.permissions, perm.id, checked)}
+                                />
+                                <label
+                                  htmlFor={`popover-${user.id}-${perm.id}`}
+                                  className={`text-sm font-medium leading-none cursor-pointer flex-1 ${hasPermission ? 'text-gray-900' : 'text-gray-400'}`}
+                                >
+                                  {perm.label}
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     {(user.permissions || []).length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {(user.permissions || []).map(permId => {
