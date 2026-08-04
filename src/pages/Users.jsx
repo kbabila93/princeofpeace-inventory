@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -81,6 +82,18 @@ export default function UsersPage() {
     },
     onError: () => {
       toast.error("Failed to update permissions");
+    }
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ userId, role }) => 
+      base44.entities.User.update(userId, { role }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success("User role updated");
+    },
+    onError: () => {
+      toast.error("Failed to update user role");
     }
   });
 
@@ -171,9 +184,22 @@ export default function UsersPage() {
                     <CardDescription>{user.email}</CardDescription>
                   </div>
                 </div>
-                <Badge variant={user.role === 'admin' ? "default" : "secondary"}>
-                  {user.role}
-                </Badge>
+                <Select
+                  value={user.role}
+                  onValueChange={(role) => updateRoleMutation.mutate({ userId: user.id, role })}
+                  disabled={updateRoleMutation.isPending && updateRoleMutation.variables?.userId === user.id || currentUser?.id === user.id}
+                >
+                  <Badge variant={user.role === 'admin' ? "default" : "secondary"} className="cursor-pointer">
+                    {user.role}
+                  </Badge>
+                  <SelectTrigger className="w-28 h-7 text-xs ml-1">
+                    <SelectValue placeholder={user.role} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">admin</SelectItem>
+                    <SelectItem value="user">user</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
             <CardContent className="pt-6">
