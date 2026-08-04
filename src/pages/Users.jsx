@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
@@ -221,27 +220,46 @@ export default function UsersPage() {
                       >Revoke All</button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {PAGE_PERMISSIONS.map((perm) => {
-                      const hasPermission = (user.permissions || []).includes(perm.id);
-                      const isUpdating = updatePermissionsMutation.isPending && updatePermissionsMutation.variables?.userId === user.id;
-                      return (
-                        <div key={perm.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`${user.id}-${perm.id}`}
-                            checked={hasPermission}
-                            disabled={isUpdating}
-                            onCheckedChange={(checked) => handlePermissionChange(user.id, user.permissions, perm.id, checked)}
-                          />
-                          <label
-                            htmlFor={`${user.id}-${perm.id}`}
-                            className={`text-sm font-medium leading-none cursor-pointer ${hasPermission ? 'text-gray-900' : 'text-gray-400'}`}
-                          >
-                            {perm.label}
-                          </label>
-                        </div>
-                      );
-                    })}
+                  <div className="flex flex-col gap-3">
+                    <Select
+                      value=""
+                      onValueChange={(permId) => handlePermissionChange(user.id, user.permissions, permId, true)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a permission to add..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {PAGE_PERMISSIONS
+                          .filter(perm => !(user.permissions || []).includes(perm.id))
+                          .map(perm => (
+                            <SelectItem key={perm.id} value={perm.id}>
+                              {perm.label}
+                            </SelectItem>
+                          ))}
+                        {PAGE_PERMISSIONS.every(perm => (user.permissions || []).includes(perm.id)) && (
+                          <div className="px-2 py-1.5 text-sm text-gray-400 italic">All permissions granted</div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {(user.permissions || []).length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {(user.permissions || []).map(permId => {
+                          const perm = PAGE_PERMISSIONS.find(p => p.id === permId);
+                          return (
+                            <Badge
+                              key={permId}
+                              variant="secondary"
+                              className="cursor-pointer hover:bg-red-100 hover:text-red-700 transition-colors"
+                              onClick={() => handlePermissionChange(user.id, user.permissions, permId, false)}
+                              title="Click to remove"
+                            >
+                              {perm?.label || permId}
+                              <span className="ml-1 text-xs">×</span>
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </>
               )}
