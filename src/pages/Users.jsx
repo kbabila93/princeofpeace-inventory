@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from 'sonner';
+import InviteUserDialog from '@/components/users/InviteUserDialog';
 
 const PAGE_PERMISSIONS = [
   { id: 'page_dashboard', label: 'Dashboard' },
@@ -61,6 +62,7 @@ const PAGE_PERMISSIONS = [
 
 export default function UsersPage() {
   const [search, setSearch] = useState("");
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser } = useQuery({
@@ -78,12 +80,21 @@ export default function UsersPage() {
   const updatePermissionsMutation = useMutation({
     mutationFn: ({ userId, permissions }) => 
       base44.functions.invoke('updateUserAccess', { userId, permissions }).then(res => res.data),
+    onMutate: async ({ userId, permissions }) => {
+      await queryClient.cancelQueries({ queryKey: ['users'] });
+      const previousUsers = queryClient.getQueryData(['users']);
+      queryClient.setQueryData(['users'], (old) => 
+        old?.map(u => u.id === userId ? { ...u, permissions } : u) || []
+      );
+      return { previousUsers };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success("User permissions updated");
     },
-    onError: (err) => {
-      console.error("Permission update error:", err);
+    onError: (err, _vars, context) => {
+      if (context?.previousUsers) {
+        queryClient.setQueryData(['users'], context.previousUsers);
+      }
       toast.error("Failed to update permissions", {
         description: err?.response?.data?.error || err?.message || "Unknown error"
       });
@@ -93,11 +104,21 @@ export default function UsersPage() {
   const updateRoleMutation = useMutation({
     mutationFn: ({ userId, role }) => 
       base44.functions.invoke('updateUserAccess', { userId, role }).then(res => res.data),
+    onMutate: async ({ userId, role }) => {
+      await queryClient.cancelQueries({ queryKey: ['users'] });
+      const previousUsers = queryClient.getQueryData(['users']);
+      queryClient.setQueryData(['users'], (old) => 
+        old?.map(u => u.id === userId ? { ...u, role } : u) || []
+      );
+      return { previousUsers };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success("User role updated");
     },
-    onError: (err) => {
+    onError: (err, _vars, context) => {
+      if (context?.previousUsers) {
+        queryClient.setQueryData(['users'], context.previousUsers);
+      }
       toast.error("Failed to update user role", {
         description: err?.response?.data?.error || err?.message || "Unknown error"
       });
@@ -113,11 +134,7 @@ export default function UsersPage() {
   };
 
   const handleInviteUser = () => {
-    toast.info("Invite Users via Dashboard", {
-      description: "To add new users, please use the 'Invite User' feature in your Base44 App Dashboard settings.",
-      duration: 6000,
-      icon: <Mail className="w-4 h-4" />
-    });
+    setIsInviteOpen(true);
   };
 
   const filteredUsers = users.filter(user => 
@@ -162,6 +179,8 @@ export default function UsersPage() {
           </Button>
         </div>
       </div>
+
+      <InviteUserDialog isOpen={isInviteOpen} onClose={() => setIsInviteOpen(false)} />
 
       <div className="grid gap-6">
         {filteredUsers.map(user => (
