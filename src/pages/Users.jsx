@@ -77,7 +77,7 @@ export default function UsersPage() {
 
   const updatePermissionsMutation = useMutation({
     mutationFn: ({ userId, permissions }) => 
-      base44.entities.User.update(userId, { permissions }),
+      base44.functions.invoke('updateUserAccess', { userId, permissions }).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success("User permissions updated");
@@ -85,20 +85,22 @@ export default function UsersPage() {
     onError: (err) => {
       console.error("Permission update error:", err);
       toast.error("Failed to update permissions", {
-        description: err?.message || "Unknown error"
+        description: err?.response?.data?.error || err?.message || "Unknown error"
       });
     }
   });
 
   const updateRoleMutation = useMutation({
     mutationFn: ({ userId, role }) => 
-      base44.entities.User.update(userId, { role }),
+      base44.functions.invoke('updateUserAccess', { userId, role }).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success("User role updated");
     },
-    onError: () => {
-      toast.error("Failed to update user role");
+    onError: (err) => {
+      toast.error("Failed to update user role", {
+        description: err?.response?.data?.error || err?.message || "Unknown error"
+      });
     }
   });
 
