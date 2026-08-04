@@ -34,18 +34,17 @@ import UserPresence from '@/components/UserPresence';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { Toaster } from "sonner";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from '@/lib/AuthContext';
 import UserSettingsDialog from '@/components/settings/UserSettingsDialog';
 
 export default function Layout({ children, currentPageName }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { user } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-
     // Listen for open-chat events from notifications
     const handleOpenChat = () => setIsChatOpen(true);
     window.addEventListener('open-chat', handleOpenChat);
