@@ -222,6 +222,7 @@ export default function UsersPage() {
                   </div>
                   <div className="flex flex-col gap-3">
                     <Select
+                      key={(user.permissions || []).join(',')}
                       value=""
                       onValueChange={(permId) => handlePermissionChange(user.id, user.permissions, permId, true)}
                     >
