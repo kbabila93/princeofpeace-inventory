@@ -44,6 +44,14 @@ import BulkEditDialog from '@/components/inventory/BulkEditDialog';
 import PrintLabelsDialog from '@/components/inventory/PrintLabelsDialog';
 import { toast } from 'sonner';
 
+const CURRENCY_SYMBOLS = {
+    USD: '$', EUR: '€', GBP: '£', CAD: 'C$', AUD: 'A$', JPY: '¥',
+    INR: '₹', NGN: '₦', ZAR: 'R', KES: 'KSh', GHS: '₵', EGP: 'E£',
+    XOF: 'CFA', XAF: 'FCFA', TZS: 'TSh', UGX: 'USh', ETB: 'Br', MAD: 'DH',
+};
+const currencySymbol = (c) => CURRENCY_SYMBOLS[c] || '$';
+const formatPrice = (amount, currency) => `${currencySymbol(currency)}${Number(amount || 0).toFixed(2)}`;
+
 export default function Inventory() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -391,13 +399,13 @@ export default function Inventory() {
                       </div>
                     </TableCell>
                     <TableCell className="capitalize">{product.category}</TableCell>
-                    <TableCell className="text-gray-600">{product.cost_price != null ? `$${Number(product.cost_price).toFixed(2)}` : '—'}</TableCell>
-                    <TableCell>${Number(product.price).toFixed(2)}</TableCell>
+                    <TableCell className="text-gray-600">{product.cost_price != null ? formatPrice(product.cost_price, product.currency) : '—'}</TableCell>
+                    <TableCell>{formatPrice(product.price, product.currency)}</TableCell>
                     <TableCell className={product.cost_price != null ? (product.price - product.cost_price >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium') : 'text-gray-400'}>
-                      {product.cost_price != null ? `$${(Number(product.price) - Number(product.cost_price)).toFixed(2)}` : '—'}
+                      {product.cost_price != null ? formatPrice(Number(product.price) - Number(product.cost_price), product.currency) : '—'}
                     </TableCell>
                     <TableCell className={product.cost_price != null ? ((product.price - product.cost_price) * (product.quantity || 0) >= 0 ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold') : 'text-gray-400'}>
-                      {product.cost_price != null ? `$${((Number(product.price) - Number(product.cost_price)) * (product.quantity || 0)).toFixed(2)}` : '—'}
+                      {product.cost_price != null ? formatPrice((Number(product.price) - Number(product.cost_price)) * (product.quantity || 0), product.currency) : '—'}
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">{product.quantity}</span>
