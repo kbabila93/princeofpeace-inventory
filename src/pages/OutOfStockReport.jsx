@@ -49,7 +49,28 @@ export default function OutOfStockReport() {
 
   const totalValue = filteredProducts.reduce((s, p) => s + (p.price || 0), 0);
 
-  const handleExportPDF = () => {
+  const fetchImageAsBase64 = (url) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || 80;
+          canvas.height = img.naturalHeight || 80;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        } catch {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+  };
+
+  const handleExportPDF = async () => {
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.setTextColor(220, 38, 38);
@@ -65,32 +86,48 @@ export default function OutOfStockReport() {
     doc.setFillColor(220, 38, 38);
     doc.rect(14, 38, 182, 8, 'F');
     doc.text("#", 16, 43);
-    doc.text("Product", 24, 43);
-    doc.text("SKU", 80, 43);
-    doc.text("Category", 110, 43);
-    doc.text("Section", 140, 43);
+    doc.text("Image", 22, 43);
+    doc.text("Product", 34, 43);
+    doc.text("SKU", 88, 43);
+    doc.text("Category", 116, 43);
+    doc.text("Section", 146, 43);
     doc.text("Price", 175, 43);
 
     // Rows
-    let y = 52;
+    let y = 56;
     doc.setTextColor(60);
-    filteredProducts.forEach((p, i) => {
+    const rowH = 14;
+    for (let i = 0; i < filteredProducts.length; i++) {
+      const p = filteredProducts[i];
       if (i % 2 === 0) {
         doc.setFillColor(245, 245, 245);
-        doc.rect(14, y - 5, 182, 7, 'F');
+        doc.rect(14, y - 5, 182, rowH, 'F');
       }
-      doc.text(String(i + 1), 16, y);
-      doc.text((p.name || '').substring(0, 30), 24, y);
-      doc.text((p.sku || '-').substring(0, 15), 80, y);
-      doc.text((p.category || '-'), 110, y);
-      doc.text((p.section || 'Main'), 140, y);
-      doc.text(formatPrice(p.price, p.currency), 175, y);
-      y += 7;
+      doc.text(String(i + 1), 16, y + 4);
+
+      if (p.image_url) {
+        const imgData = await fetchImageAsBase64(p.image_url);
+        if (imgData) {
+          try {
+            doc.addImage(imgData, 'JPEG', 22, y - 4, 10, 10);
+          } catch { /* skip on error */ }
+        }
+      } else {
+        doc.setFillColor(229, 231, 235);
+        doc.rect(22, y - 4, 10, 10, 'F');
+      }
+
+      doc.text((p.name || '').substring(0, 28), 34, y + 4);
+      doc.text((p.sku || '-').substring(0, 14), 88, y + 4);
+      doc.text((p.category || '-'), 116, y + 4);
+      doc.text((p.section || 'Main'), 146, y + 4);
+      doc.text(formatPrice(p.price, p.currency), 175, y + 4);
+      y += rowH;
       if (y > 280) {
         doc.addPage();
         y = 20;
       }
-    });
+    }
 
     doc.save("out-of-stock-report.pdf");
   };
@@ -107,8 +144,8 @@ export default function OutOfStockReport() {
     <h2>Out of Stock Products Report</h2>
     <p>Generated: ${new Date().toLocaleString()}</p>
     <p>Total items: ${filteredProducts.length}</p>
-    <table><thead><tr><th>#</th><th>Product</th><th>SKU</th><th>Category</th><th>Section</th><th>Price</th></tr></thead>
-    <tbody>${filteredProducts.map((p, i) => `<tr><td>${i + 1}</td><td>${p.name}</td><td>${p.sku || '-'}</td><td>${p.category || '-'}</td><td>${p.section || 'Main'}</td><td>${formatPrice(p.price, p.currency)}</td></tr>`).join('')}</tbody></table>
+    <table><thead><tr><th>#</th><th>Image</th><th>Product</th><th>SKU</th><th>Category</th><th>Section</th><th>Price</th></tr></thead>
+    <tbody>${filteredProducts.map((p, i) => `<tr><td>${i + 1}</td><td>${p.image_url ? `<img src="${p.image_url}" width="40" height="40" style="object-fit:cover;border-radius:4px"/>` : '-'}</td><td>${p.name}</td><td>${p.sku || '-'}</td><td>${p.category || '-'}</td><td>${p.section || 'Main'}</td><td>${formatPrice(p.price, p.currency)}</td></tr>`).join('')}</tbody></table>
     </body></html>`);
     win.document.close();
     win.print();
@@ -208,6 +245,7 @@ export default function OutOfStockReport() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">#</TableHead>
+              <TableHead className="w-16">Image</TableHead>
               <TableHead>Product</TableHead>
               <TableHead>SKU</TableHead>
               <TableHead>Category</TableHead>
@@ -219,11 +257,11 @@ export default function OutOfStockReport() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-10 text-gray-500">Loading...</TableCell>
+                <TableCell colSpan={8} className="text-center py-10 text-gray-500">Loading...</TableCell>
               </TableRow>
             ) : filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-10 text-gray-500">
+                <TableCell colSpan={8} className="text-center py-10 text-gray-500">
                   {outOfStockProducts.length === 0 ? "No out-of-stock products 🎉" : "No products match your filters"}
                 </TableCell>
               </TableRow>
@@ -232,18 +270,18 @@ export default function OutOfStockReport() {
                 <TableRow key={product.id}>
                   <TableCell className="text-gray-400">{index + 1}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-xs font-bold text-gray-400">
-                            {product.name.substring(0, 2).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <span className="font-medium">{product.name}</span>
+                    <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
+                      {product.image_url ? (
+                        <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs font-bold text-gray-400">
+                          {product.name.substring(0, 2).toUpperCase()}
+                        </span>
+                      )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-medium">{product.name}</span>
                   </TableCell>
                   <TableCell className="text-gray-500">{product.sku || '-'}</TableCell>
                   <TableCell><Badge variant="secondary" className="capitalize">{product.category || 'other'}</Badge></TableCell>
@@ -257,6 +295,7 @@ export default function OutOfStockReport() {
           {filteredProducts.length > 0 && (
             <tfoot>
               <tr className="border-t-2 border-red-200 bg-red-50 font-semibold text-sm">
+                <td className="p-2" />
                 <td className="p-2" />
                 <td className="p-2 text-red-700">Totals ({filteredProducts.length} products)</td>
                 <td className="p-2" />
