@@ -59,22 +59,37 @@ export default function OutOfStockReport() {
     doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 27);
     doc.text(`Total out-of-stock items: ${filteredProducts.length}`, 14, 33);
 
-    const headers = [["#", "Product", "SKU", "Category", "Section", "Price"]];
-    const rows = filteredProducts.map((p, i) => [
-      i + 1,
-      p.name || '',
-      p.sku || '-',
-      p.category || '-',
-      p.section || 'Main',
-      `${currencySymbol(p.currency)}${Number(p.price || 0).toFixed(2)}`,
-    ]);
+    // Headers
+    doc.setFontSize(9);
+    doc.setTextColor(255);
+    doc.setFillColor(220, 38, 38);
+    doc.rect(14, 38, 182, 8, 'F');
+    doc.text("#", 16, 43);
+    doc.text("Product", 24, 43);
+    doc.text("SKU", 80, 43);
+    doc.text("Category", 110, 43);
+    doc.text("Section", 140, 43);
+    doc.text("Price", 175, 43);
 
-    doc.autoTable({
-      head: headers,
-      body: rows,
-      startY: 40,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [220, 38, 38] },
+    // Rows
+    let y = 52;
+    doc.setTextColor(60);
+    filteredProducts.forEach((p, i) => {
+      if (i % 2 === 0) {
+        doc.setFillColor(245, 245, 245);
+        doc.rect(14, y - 5, 182, 7, 'F');
+      }
+      doc.text(String(i + 1), 16, y);
+      doc.text((p.name || '').substring(0, 30), 24, y);
+      doc.text((p.sku || '-').substring(0, 15), 80, y);
+      doc.text((p.category || '-'), 110, y);
+      doc.text((p.section || 'Main'), 140, y);
+      doc.text(formatPrice(p.price, p.currency), 175, y);
+      y += 7;
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
     });
 
     doc.save("out-of-stock-report.pdf");
