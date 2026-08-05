@@ -46,9 +46,11 @@ export default function BulkEditDialog({ isOpen, onClose, selectedIds, onComplet
                 updateData.last_updated_by = user.email;
             }
 
-            await base44.entities.Product.bulkUpdate(
-                selectedIds.map(id => ({ id, ...updateData }))
-            );
+            const records = selectedIds.map(id => ({ id, ...updateData }));
+            const BATCH_SIZE = 500;
+            for (let i = 0; i < records.length; i += BATCH_SIZE) {
+                await base44.entities.Product.bulkUpdate(records.slice(i, i + BATCH_SIZE));
+            }
         },
         onSuccess: () => {
              queryClient.invalidateQueries({ queryKey: ['products'] });
