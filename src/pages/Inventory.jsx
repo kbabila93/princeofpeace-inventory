@@ -480,10 +480,10 @@ export default function Inventory() {
                   <td className="p-2" />
                   <td className="p-2 text-indigo-700">Totals ({filteredProducts.length} products)</td>
                   <td className="p-2" />
-                  <td className="p-2 text-gray-700">${totalCostValue.toFixed(2)}</td>
-                  <td className="p-2 text-gray-700">${totalSaleValue.toFixed(2)}</td>
+                  <td className="p-2 text-gray-700"><span className="block text-[10px] font-normal text-gray-400">Total Cost</span>${totalCostValue.toFixed(2)}</td>
+                  <td className="p-2 text-gray-700"><span className="block text-[10px] font-normal text-gray-400">Total Sale</span>${totalSaleValue.toFixed(2)}</td>
                   <td className="p-2" />
-                  <td className="p-2 text-green-700">${totalProfit.toFixed(2)}</td>
+                  <td className="p-2 text-green-700"><span className="block text-[10px] font-normal text-gray-400">Total Profit</span>${totalProfit.toFixed(2)}</td>
                   <td className="p-2 text-indigo-700">{totalQty.toLocaleString()} units</td>
                   <td className="p-2" />
                   <td className="p-2" />
