@@ -474,16 +474,17 @@ export default function Inventory() {
             const totalCostValue = filteredProducts.reduce((s, p) => s + (p.cost_price != null ? Number(p.cost_price) * (p.quantity || 0) : 0), 0);
             const totalSaleValue = filteredProducts.reduce((s, p) => s + (Number(p.price) * (p.quantity || 0)), 0);
             const totalProfit = filteredProducts.reduce((s, p) => s + (p.cost_price != null ? (Number(p.price) - Number(p.cost_price)) * (p.quantity || 0) : 0), 0);
+            const footerCurrency = filteredProducts[0]?.currency || 'USD';
             return (
               <tfoot>
                 <tr className="border-t-2 border-indigo-200 bg-indigo-50 font-semibold text-sm">
                   <td className="p-2" />
                   <td className="p-2 text-indigo-700">Totals ({filteredProducts.length} products)</td>
                   <td className="p-2" />
-                  <td className="p-2 text-gray-700"><span className="block text-[10px] font-normal text-gray-400">Total Cost</span>${totalCostValue.toFixed(2)}</td>
-                  <td className="p-2 text-gray-700"><span className="block text-[10px] font-normal text-gray-400">Total Sale</span>${totalSaleValue.toFixed(2)}</td>
+                  <td className="p-2 text-gray-700"><span className="block text-[10px] font-normal text-gray-400">Total Cost</span>{formatPrice(totalCostValue, footerCurrency)}</td>
+                  <td className="p-2 text-gray-700"><span className="block text-[10px] font-normal text-gray-400">Total Sale</span>{formatPrice(totalSaleValue, footerCurrency)}</td>
                   <td className="p-2" />
-                  <td className="p-2 text-green-700"><span className="block text-[10px] font-normal text-gray-400">Total Profit</span>${totalProfit.toFixed(2)}</td>
+                  <td className="p-2 text-green-700"><span className="block text-[10px] font-normal text-gray-400">Total Profit</span>{formatPrice(totalProfit, footerCurrency)}</td>
                   <td className="p-2 text-indigo-700">{totalQty.toLocaleString()} units</td>
                   <td className="p-2" />
                   <td className="p-2" />
