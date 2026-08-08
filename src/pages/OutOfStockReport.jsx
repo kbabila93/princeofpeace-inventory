@@ -270,9 +270,16 @@ export default function OutOfStockReport() {
                 <TableRow key={product.id}>
                   <TableCell className="text-gray-400">{index + 1}</TableCell>
                   <TableCell>
-                    <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
+                    <div className="group relative w-12 h-12 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
                       {product.image_url ? (
-                        <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                        <>
+                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="hidden group-hover:block absolute z-10 w-32 h-32 object-cover rounded-lg shadow-xl border border-gray-200 left-full top-1/2 -translate-y-1/2 ml-2"
+                          />
+                        </>
                       ) : (
                         <span className="text-xs font-bold text-gray-400">
                           {product.name.substring(0, 2).toUpperCase()}
